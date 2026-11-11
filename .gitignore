@@ -1,0 +1,25 @@
+# --- Datos personales: NUNCA al repo ---
+config/perfil.yaml
+config/*.local.yaml
+cvs/
+datos/
+secretos/
+.env
+*.pdf
+*.docx
+credentials*.json
+token*.json
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+build/
+dist/
+
+# --- Sistema ---
+.DS_Store
+Thumbs.db

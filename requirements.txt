@@ -1,0 +1,4 @@
+# Núcleo (modo asistente en el chat): sin credenciales ni red
+PyYAML>=6
+requests>=2.31
+pytest>=8

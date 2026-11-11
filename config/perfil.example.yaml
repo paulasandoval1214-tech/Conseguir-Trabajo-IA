@@ -1,0 +1,78 @@
+# Perfil de ejemplo. Copia este archivo a config/perfil.yaml y llénalo.
+# config/perfil.yaml está en .gitignore: NUNCA subas tus datos personales.
+
+candidato:
+  nombre: "Nombre Apellido"
+  correo_envio: "tu_correo@gmail.com"     # cuenta de Gmail donde quedan los borradores
+  profesion: "Psicóloga con formación en análisis de datos"
+  ciudad: "Bogotá"
+  anios_experiencia: 2
+  nivel_ingles: "basico"                  # basico | intermedio | avanzado
+  resumen: "People Analytics, Power BI, Python, Excel avanzado, selección y onboarding"
+
+ubicacion:
+  pais: "colombia"
+  ciudades_aceptadas: ["Bogotá", "Chía", "Cajicá", "Funza", "Mosquera", "Remoto"]
+  aceptar_sin_ciudad: true                # si el post no dice ciudad, igual se revisa
+
+carpeta_datos: "datos"                    # ignorada por git (historial, vacantes, reportes)
+
+# Cada línea es un "tipo de búsqueda" con su CV, su plantilla y sus palabras clave.
+lineas:
+  datos:
+    nombre: "Analista de datos / Power BI"
+    cv: "cvs/CV_Datos.pdf"
+    plantilla: "plantillas/correo_datos.txt"
+    experiencia_correo: "análisis de datos, construcción de dashboards en Power BI y automatización de procesos con Python y Excel"
+    palabras_clave: [datos, data, power bi, bi, business intelligence, analitica, analítica,
+                     informacion, información, dashboards, tableros, indicadores, python, sql,
+                     reportes, people analytics, inteligencia de negocios]
+    palabras_excluir: [contador, contable, contabilidad, tesoreria, tesorería, cartera, nomina,
+                       nómina, riesgo de mercado, auditor, desarrollador, fullstack, qa, ciberseguridad,
+                       senior, sr]
+    consultas:
+      - "analista de datos Bogotá hoja de vida"
+      - "analista de información power bi hoja de vida"
+      - "power bi Bogotá envía tu hoja de vida"
+      - "analista BI Bogotá envía tu hoja de vida"
+      - "people analytics vacante hoja de vida"
+
+  gestion_humana:
+    nombre: "Gestión humana"
+    cv: "cvs/CV_Gestion_Humana.pdf"
+    plantilla: "plantillas/correo_gestion_humana.txt"
+    experiencia_correo: "procesos de selección, onboarding y gestión de indicadores de talento humano"
+    palabras_clave: [seleccion, selección, reclutamiento, reclutador, reclutadora, talento humano,
+                     gestion humana, gestión humana, recursos humanos, rrhh, generalista, onboarding,
+                     atraccion de talento, atracción de talento, psicologa, psicóloga, psicologo, psicólogo, hrbp]
+    palabras_excluir: [contador, contable, nomina, nómina, seguridad social, sst, abogado, senior]
+    consultas:
+      - "analista de selección Bogotá hoja de vida"
+      - "vacante psicóloga selección Bogotá"
+      - "analista talento humano Bogotá envía hoja de vida"
+      - "generalista recursos humanos Bogotá hoja de vida"
+
+busqueda:
+  periodo_linkedin: "past-month"          # past-24h | past-week | past-month
+  periodo_google: "qdr:m"                 # qdr:w = última semana, qdr:m = último mes
+  max_consultas_google: 12
+  usar_google: true
+  tolerancia_anios: 1                     # acepta vacantes que pidan hasta N años más
+  scrolls: 12
+  max_texto: 900               # caracteres por post que devuelve el extractor (menos = menos tokens)
+  # Modo LinkedIn con sesión: va contra los términos de LinkedIn. Apagado por defecto.
+  linkedin_con_sesion: false
+  max_consultas_linkedin: 6
+  pausa_segundos: [25, 60]
+
+# Correos que nunca se toman como contacto de postulación
+correos_ignorar: ["accessibility@", "info@", "noreply", "no-reply", "privacy@", "soporte@"]
+
+ia:
+  usar: true                              # requiere ANTHROPIC_API_KEY en .env
+  modelo: "claude-haiku-5-5"
+  max_por_ejecucion: 60
+
+gmail:
+  credenciales: "secretos/credentials.json"
+  token: "secretos/token.json"
