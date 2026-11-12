@@ -34,7 +34,10 @@ PAISES = {
 }
 
 CIUDADES = ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Bucaramanga",
-            "Chía", "Pereira", "Yumbo", "Cajicá", "Zipaquirá", "Funza", "Mosquera"]
+            "Chía", "Pereira", "Yumbo", "Cajicá", "Zipaquirá", "Funza", "Mosquera", "Soacha",
+            "Itagüí", "Envigado", "Rionegro", "Girardot", "Manizales", "Ibagué", "Villavicencio",
+            "Valledupar", "Tunja", "Neiva", "Santa Marta", "Cúcuta", "Armenia", "Popayán", "Pasto",
+            "Montería", "Sincelejo", "Facatativá", "Tocancipá"]
 
 PALABRAS_CARGO = (
     "analista|profesional|psic[oó]log[oa]|generalista|auxiliar|asistente|coordinador[a]?|"
@@ -57,12 +60,18 @@ def limpiar(texto: str) -> str:
 
 def _limpiar_cargo(c: str) -> str:
     c = limpiar(c).replace("#", "")
+    c = re.split(r"\s*[(…*\"“”]|\.\.\.", c)[0]
+    palabras_may = [w for w in c.split() if w.isalpha()]
+    if palabras_may and sum(w.isupper() for w in palabras_may) >= max(2, len(palabras_may) // 2):
+        c = " ".join(w.lower() if w.isupper() else w for w in c.split())
     c = re.split(r"\s(?:en|para|con|que|en la ciudad de)\s(?=[A-ZÁÉÍÓÚa-z])|[!?¿¡:|]| - | – ", c)[0]
     c = re.split(r"\s(?:Ubicaci[oó]n|Formaci[oó]n|Requisitos|Salario|Experiencia|Modalidad|Horario|"
                  r"Contrato|Perfil|Funciones|Lugar|Ciudad)\b", c, flags=re.IGNORECASE)[0]
     c = c.strip(" .,-–*\"'“”")
     if c.isupper():
         c = c.lower()
+    for ciudad in CIUDADES:  # "Analista X Bogotá" -> "Analista X"
+        c = re.sub(rf"\s+{ciudad}$", "", c)
     c = re.sub(r"\b(analista|auxiliar|profesional|asesor|asistente)e?s\b", r"\1", c, flags=re.IGNORECASE)
     palabras = c.split()
     return " ".join(palabras[:9])
@@ -90,7 +99,7 @@ def separar_cabecera(texto: str) -> tuple[str, str]:
 def extraer_cargo(texto: str) -> str:
     t = limpiar(texto).replace("#", "")
     patrones = [
-        rf"(?:vacante|cargo|posici[oó]n|rol)\s*[:\-–]\s*((?:{PALABRAS_CARGO})[^.!\n]{{2,80}})",
+        rf"(?:vacante|cargo|posici[oó]n|rol)\s*[:\-–]?\s*((?:{PALABRAS_CARGO})[^.!\n]{{2,80}})",
         rf"(?:buscando|buscamos|b[uú]squeda de|contratando|necesitamos|requiere)\s+"
         rf"(?:a\s+)?(?:un\(a\)|una?\(a\)|un/a|una?|nuestr[oa](?:/a)?|nuestro/a|el/la|la|el)?\s*(?:pr[oó]xim[oa](?:/a)?\s+)?"
         rf"(?:\d+\s+)?((?:{PALABRAS_CARGO})[^.!\n]{{2,80}})",
@@ -131,8 +140,16 @@ def extraer_empresa(texto: str) -> str:
     if m:
         return m.group(1).strip(" ,")
     m = re.search(r"(?:haz parte de|[uú]nete a)\s+((?:[A-Z][\w&.\-]*\s?){1,5})", t, re.IGNORECASE)
-    if m:
+    if m and m.group(1)[0].isupper():
         return m.group(1).strip(" ,!")
+    # "... Analista de Datos en Medismart!" (descarta ciudades)
+    for m in re.finditer(r"\ben\s+([A-Z][\w&.\-]+(?:\s[A-Z][\w&.\-]+){0,3})\s*[!.,]", t):
+        nombre = m.group(1).strip()
+        no_empresa = {normalizar(c) for c in CIUDADES} | {
+            "colombia", "linkedin", "ingenieria", "administracion", "economia", "contaduria",
+            "psicologia", "sistemas", "excel", "power", "python", "sql", "ingles"}
+        if normalizar(nombre.split()[0]) not in no_empresa and normalizar(nombre) not in no_empresa:
+            return nombre
     return ""
 
 
@@ -207,6 +224,25 @@ def detectar_pais(texto: str) -> str:
     return otros[0] if otros else "colombia"
 
 
+DOMINIOS_PUBLICOS = {"gmail", "hotmail", "outlook", "yahoo", "live", "icloud", "protonmail"}
+TLD_PAIS = {"ec": "ecuador", "pe": "peru", "mx": "mexico", "ve": "venezuela", "cl": "chile",
+            "ar": "argentina", "do": "republica dominicana", "pa": "panama", "cr": "costa rica",
+            "gt": "guatemala", "es": "espana", "hn": "honduras", "sv": "el salvador", "us": "", "co": "colombia"}
+
+
+def empresa_desde_correo(correo: str) -> str:
+    """seleccion@movet.co -> "Movet" (si el dominio no es un correo público)."""
+    dominio = correo.split("@")[-1].lower()
+    nombre = dominio.split(".")[0]
+    if nombre in DOMINIOS_PUBLICOS:
+        return ""
+    return nombre.replace("-", " ").title()
+
+
+def pais_desde_correo(correo: str) -> str:
+    return TLD_PAIS.get(correo.rsplit(".", 1)[-1].lower(), "")
+
+
 def correos_del_post(post: PostCrudo, ignorar: list[str] | None = None) -> list[str]:
     ignorar = [i.lower() for i in (ignorar or [])]
     correos = set(c.strip(".").lower() for c in post.correos)
@@ -223,7 +259,9 @@ def post_a_vacantes(post: PostCrudo, ignorar_correos: list[str] | None = None) -
     """Un post puede traer varios correos; se crea una vacante por correo."""
     cabecera, cuerpo = separar_cabecera(post.texto)
     texto = cuerpo or post.texto
-    es_pagina_empresa = bool(cabecera) and "•" not in cabecera[:150]
+    agregador = re.search(r"ofertas ?de ?trabajo|ofertas ?laborales|red de referidos|empleos? colombia",
+                          normalizar(post.autor + " " + cabecera[:80]))
+    es_pagina_empresa = bool(cabecera) and "•" not in cabecera[:150] and not agregador
     empresa = extraer_empresa(texto) or (limpiar(post.autor)[:60] if es_pagina_empresa else "")
     base = dict(
         cargo=extraer_cargo(texto),
@@ -246,4 +284,11 @@ def post_a_vacantes(post: PostCrudo, ignorar_correos: list[str] | None = None) -
         candidato = re.sub(r"^(postulaci[oó]n|hoja de vida|hv)\s*[-–:]\s*", "", base["asunto_exigido"],
                            flags=re.IGNORECASE)
         base["cargo"] = re.split(r"\s[-–]\s", candidato)[0]
-    return [Vacante(correo=c, **base) for c in correos_del_post(post, ignorar_correos)]
+    vacantes = []
+    for c in correos_del_post(post, ignorar_correos):
+        v = Vacante(correo=c, **base)
+        v.empresa = v.empresa or empresa_desde_correo(c)
+        if not v.pais_detectado or v.pais_detectado == "colombia":
+            v.pais_detectado = pais_desde_correo(c) or v.pais_detectado
+        vacantes.append(v)
+    return vacantes

@@ -44,7 +44,7 @@ lineas:
     experiencia_correo: "procesos de selección, onboarding y gestión de indicadores de talento humano"
     palabras_clave: [seleccion, selección, reclutamiento, reclutador, reclutadora, talento humano,
                      gestion humana, gestión humana, recursos humanos, rrhh, generalista, onboarding,
-                     atraccion de talento, atracción de talento, psicologa, psicóloga, psicologo, psicólogo, hrbp]
+                     atraccion de talento, atracción de talento, talento y cultura, gestion del talento, gestión del talento, people, psicologa, psicóloga, psicologo, psicólogo, hrbp]
     palabras_excluir: [contador, contable, nomina, nómina, seguridad social, sst, abogado, senior]
     consultas:
       - "analista de selección Bogotá hoja de vida"

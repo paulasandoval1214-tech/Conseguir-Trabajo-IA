@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import re
 
 from .config import Perfil
@@ -17,6 +18,31 @@ RE_BUSCA_EMPLEO = re.compile(
     r"(estoy|me encuentro) en (la )?busqueda de (nuevas )?oportunidades|#opentowork|busco empleo|"
     r"disponibilidad inmediata para"
 )
+
+
+MESES = {"enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6, "julio": 7,
+         "agosto": 8, "septiembre": 9, "setiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12}
+RE_FECHA_LIMITE = re.compile(
+    r"(?:hasta el|fecha l[ií]mite|plazo|antes del?)\s*[:\-]?\s*(?:[a-z]+\s+)?(\d{1,2})\s+de\s+([a-z]+)"
+)
+
+
+def fecha_limite_vencida(texto_norm: str, hoy: dt.date | None = None) -> bool:
+    """True si el post dice "hasta el 15 de octubre" y esa fecha ya pasó."""
+    hoy = hoy or dt.date.today()
+    for dia, mes in RE_FECHA_LIMITE.findall(texto_norm):
+        if mes not in MESES:
+            continue
+        try:
+            fecha = dt.date(hoy.year, MESES[mes], int(dia))
+        except ValueError:
+            continue
+        # Publicaciones de hace pocas semanas: un mes muy posterior es del año anterior.
+        if fecha > hoy and (fecha - hoy).days > 180:
+            fecha = fecha.replace(year=hoy.year - 1)
+        if fecha < hoy:
+            return True
+    return False
 
 
 def _contar(palabras: list[str], texto_norm: str) -> int:
@@ -61,6 +87,8 @@ def motivo_descarte(v: Vacante, perfil: Perfil, ya_postulados: set[str]) -> str:
         return "es una persona buscando empleo, no una vacante"
     if RE_CERRADA.search(texto):
         return "vacante cerrada"
+    if fecha_limite_vencida(texto):
+        return "fecha límite vencida"
 
     pais = normalizar(ubic.get("pais", ""))
     if pais and v.pais_detectado and v.pais_detectado != pais:

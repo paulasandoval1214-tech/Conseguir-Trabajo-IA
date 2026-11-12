@@ -43,6 +43,9 @@ class Historial:
     registros: list[Registro] = field(default_factory=list)
     titulo: str = "Histórico de postulaciones"
     aprendizajes: list[str] = field(default_factory=list)
+    # Texto libre que no es tabla (intro, "Descartadas", notas): se conserva al reescribir.
+    preambulo: list[str] = field(default_factory=list)
+    secciones_extra: dict[str, list[str]] = field(default_factory=dict)
 
     # ------------------------------------------------------------------ lectura
     @classmethod
@@ -52,21 +55,35 @@ class Historial:
             return h
         encabezado: list[str] | None = None
         en_aprendizajes = False
+        seccion: str | None = None  # None = preámbulo
+        lineas_seccion: dict[str, list[str]] = {}
+        secciones_con_tabla: set[str] = set()
         for linea in ruta.read_text(encoding="utf-8").splitlines():
             s = linea.strip()
             if s.startswith("# "):
                 h.titulo = s[2:].strip()
+                continue
             if s.lower().startswith("## aprendizajes"):
-                en_aprendizajes = True
+                en_aprendizajes, seccion = True, "__aprendizajes__"
                 continue
             if s.startswith("## "):
-                en_aprendizajes = False
-            if en_aprendizajes and s.startswith("- "):
-                h.aprendizajes.append(s[2:])
+                en_aprendizajes, seccion = False, s[3:].strip()
+                lineas_seccion.setdefault(seccion, [])
+                continue
+            if en_aprendizajes:
+                if s.startswith("- ") and not s.startswith("- (Anotar"):
+                    h.aprendizajes.append(s[2:])
                 continue
             if not s.startswith("|"):
                 encabezado = None
+                if seccion is None:
+                    if s and "Estados:" not in s:
+                        h.preambulo.append(linea)
+                elif s:
+                    lineas_seccion[seccion].append(linea)
                 continue
+            if seccion:
+                secciones_con_tabla.add(seccion)
             celdas = [c.strip() for c in s.strip("|").split("|")]
             if encabezado is None:
                 encabezado = [c.lower() for c in celdas]
@@ -90,14 +107,16 @@ class Historial:
                 linea=col("línea", "linea", "cv"), fuente=col("fuente"),
                 estado=col("estado"), notas=col("notas", "respuesta"),
             ))
+        h.secciones_extra = {k: v for k, v in lineas_seccion.items() if k not in secciones_con_tabla and v}
         return h
 
     # ---------------------------------------------------------------- escritura
     def escribir(self, ruta: Path, nombres_lineas: dict[str, str] | None = None) -> None:
         nombres_lineas = nombres_lineas or {}
-        partes = [f"# {self.titulo}", "",
-                  "Estados: " + " → ".join(ESTADOS[:3]) + " → En proceso / Rechazado / Sin respuesta / Oferta",
-                  ""]
+        partes = [f"# {self.titulo}", ""]
+        if self.preambulo:
+            partes += self.preambulo + [""]
+        partes += ["Estados: " + " → ".join(ESTADOS[:3]) + " → En proceso / Rechazado / Sin respuesta / Oferta", ""]
         grupos: dict[str, list[Registro]] = {}
         for r in self.registros:
             grupos.setdefault(r.linea or "sin línea", []).append(r)
@@ -109,6 +128,8 @@ class Historial:
                 celdas = [str(c).replace("|", "/").replace("\n", " ") for c in r.fila()]
                 partes.append("| " + " | ".join(celdas) + " |")
             partes.append("")
+        for titulo, lineas in self.secciones_extra.items():
+            partes += [f"## {titulo}", ""] + lineas + [""]
         partes += ["## Aprendizajes / ajustes", ""]
         partes += [f"- {a}" for a in self.aprendizajes] or ["- (Anotar motivos de rechazo y qué cambiar.)"]
         ruta.parent.mkdir(parents=True, exist_ok=True)

@@ -72,3 +72,27 @@ def test_historial_lee_tablas_editadas_a_mano(tmp_path):
     h = Historial.leer(ruta)
     assert h.correos() == {"x@demo-ejemplo.com"}
     assert h.registros[0].estado == "Enviado"
+
+
+def test_historial_conserva_secciones_libres(tmp_path):
+    ruta = tmp_path / "h.md"
+    ruta.write_text(
+        "# H\n\nCorreo de envío: algo\n\n## Datos\n\n| Fecha | Empresa | Cargo | Ciudad | Correo | Línea | Fuente | Estado | Notas |\n"
+        "|---|---|---|---|---|---|---|---|---|\n| 2026-11-11 | X | A | B | x@demo-ejemplo.com | datos | L | Enviado | |\n\n"
+        "## Descartadas\n- Vacante Y: pide inglés\n\n## Aprendizajes / ajustes\n- aprendizaje 1\n",
+        encoding="utf-8")
+    h = Historial.leer(ruta)
+    h.escribir(ruta, {"datos": "Datos"})
+    texto = ruta.read_text(encoding="utf-8")
+    assert "Correo de envío: algo" in texto
+    assert "## Descartadas" in texto and "Vacante Y" in texto
+    assert "- aprendizaje 1" in texto and texto.count("x@demo-ejemplo.com") == 1
+
+
+def test_fecha_limite_vencida():
+    import datetime as dt
+    from buscador_empleo.filtros import fecha_limite_vencida
+    hoy = dt.date(2026, 11, 11)
+    assert fecha_limite_vencida("envia tu hoja de vida hasta el jueves 15 de octubre", hoy)
+    assert fecha_limite_vencida("fecha limite: 22 de octubre", hoy)
+    assert not fecha_limite_vencida("fecha limite: 20 de noviembre de 2026", hoy)
