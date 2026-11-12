@@ -231,7 +231,7 @@ TLD_PAIS = {"ec": "ecuador", "pe": "peru", "mx": "mexico", "ve": "venezuela", "c
 
 
 def empresa_desde_correo(correo: str) -> str:
-    """seleccion@movet.co -> "Movet" (si el dominio no es un correo público)."""
+    """seleccion@empresa-ejemplo.co -> "Empresa Ejemplo" (si el dominio no es un correo público)."""
     dominio = correo.split("@")[-1].lower()
     nombre = dominio.split(".")[0]
     if nombre in DOMINIOS_PUBLICOS:
