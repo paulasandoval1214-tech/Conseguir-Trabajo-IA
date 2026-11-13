@@ -12,7 +12,7 @@ import unicodedata
 
 from .modelos import PostCrudo, Vacante
 
-RE_CORREO = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}")
+RE_CORREO = re.compile(r"(?<![\wÀ-ÿ.%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}")
 RE_EMOJI = re.compile(
     "[\U0001F000-\U0001FAFF\U00002600-\U000027BF\U0000FE0F\U0000200D⭐✅❌✔]"
 )

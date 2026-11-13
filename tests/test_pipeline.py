@@ -96,3 +96,10 @@ def test_fecha_limite_vencida():
     assert fecha_limite_vencida("envia tu hoja de vida hasta el jueves 15 de octubre", hoy)
     assert fecha_limite_vencida("fecha limite: 22 de octubre", hoy)
     assert not fecha_limite_vencida("fecha limite: 20 de noviembre de 2026", hoy)
+
+
+def test_correo_con_tilde_no_se_recorta():
+    from buscador_empleo.extraccion import RE_CORREO
+    # "Matías.x@..." no es un correo válido: no debe salir "as.x@..." recortado
+    assert RE_CORREO.findall("escribe a Matías.perez@demo-ejemplo.com hoy") == []
+    assert RE_CORREO.findall("escribe a matias.perez@demo-ejemplo.com") == ["matias.perez@demo-ejemplo.com"]

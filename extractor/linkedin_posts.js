@@ -26,7 +26,7 @@
     window.__CTI_CONFIG || {}
   );
   const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
-  const RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
+  const RE = /(?<![\wÀ-ÿ.%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g;
   const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
   const expandir = () =>
