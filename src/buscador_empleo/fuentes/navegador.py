@@ -110,6 +110,56 @@ def elegir_consultas(perfil: Perfil, maximo: int, estado: dict | None = None) ->
         return feed[:maximo], dict(estado or {})
     if not perfil.busqueda.get("rotar_consultas", True):
         return feed + resto[:cupo], dict(estado or {})
-    inicio = int((estado or {}).get("inicio", 0)) % len(resto)
+    if estado and "inicio" in estado:
+        inicio = int(estado["inicio"]) % len(resto)
+    else:
+        # Sin estado guardado (p. ej. una sesión nueva en el chat): el punto de partida depende
+        # de la fecha, así cada día toca un grupo distinto aunque no haya memoria entre sesiones.
+        import datetime as dt
+
+        inicio = (dt.date.today().toordinal() * cupo) % len(resto)
     hoy = [resto[(inicio + i) % len(resto)] for i in range(min(cupo, len(resto)))]
     return feed + hoy, {"inicio": (inicio + len(hoy)) % len(resto)}
+
+
+ENVOLTURA = (
+    "(async () => {"
+    " const c = JSON.parse(localStorage.cti_cfg);"
+    " const extra = JSON.parse(localStorage.cti_extra || '{}');"
+    " window.__CTI_CONFIG = Object.assign({}, c, extra);"
+    " const r = await eval(localStorage.cti_body);"
+    " JSON.parse(r).forEach((x) => c.conocidos.push(...x.correos));"
+    " localStorage.cti_cfg = JSON.stringify(c);"
+    " return r; })()"
+)
+
+
+def version_extractor() -> str:
+    """Huella corta del extractor: si cambia, hay que volver a cargarlo en el navegador."""
+    import hashlib
+
+    return hashlib.sha1(RUTA_JS.read_bytes()).hexdigest()[:8]
+
+
+def script_cargador(perfil: Perfil, conocidos: set[str], incluir_imagenes: bool = False) -> str:
+    """JS que deja el extractor GUARDADO en el navegador (localStorage de linkedin.com).
+
+    Se pega una sola vez (y otra vez solo si cambia la versión). Después, en cada página,
+    basta con ejecutar exactamente:  await eval(localStorage.cti_run)
+    - Devuelve el mismo JSON que el extractor.
+    - Agrega a `conocidos` los correos devueltos: la siguiente consulta no los repite.
+    - Para el feed, antes: localStorage.cti_extra = '{"scrolls":25}'  (y '{}' para volver).
+    Ahorra tokens: el script (~10 KB) no viaja en cada consulta.
+    Nota: LinkedIn bloquea `eval` si va junto a otras instrucciones; la llamada debe ir sola.
+    """
+    cfg = config_extractor(perfil, conocidos, incluir_imagenes)
+    cuerpo = RUTA_JS.read_text(encoding="utf-8")
+    return (
+        f"localStorage.cti_cfg = {json.dumps(json.dumps(cfg, ensure_ascii=False), ensure_ascii=False)};\n"
+        f"localStorage.cti_body = {json.dumps(cuerpo, ensure_ascii=False)};\n"
+        f"localStorage.cti_run = {json.dumps(ENVOLTURA)};\n"
+        f"localStorage.cti_extra = '{{}}';\n"
+        f"localStorage.cti_version = {json.dumps(version_extractor())};\n"
+        "'extractor guardado: version ' + localStorage.cti_version + ', conocidos: ' + "
+        "JSON.parse(localStorage.cti_cfg).conocidos.length;\n"
+    )

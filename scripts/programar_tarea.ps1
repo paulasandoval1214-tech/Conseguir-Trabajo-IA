@@ -1,4 +1,4 @@
-# Crea una tarea programada de Windows que corre la búsqueda todas las noches.
+﻿# Crea una tarea programada de Windows que corre la búsqueda todas las noches.
 #   powershell -ExecutionPolicy Bypass -File scripts\programar_tarea.ps1 -Hora "21:30"
 param([string]$Hora = "21:30", [string]$Nombre = "ConseguirTrabajoIA")
 $repo = Split-Path $PSScriptRoot -Parent

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "buscador-empleo"
-version = "0.1.0"
+version = "0.2.0"
 description = "Encuentra vacantes con correo de postulación y deja borradores listos en Gmail."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -19,6 +19,7 @@ local = [
   "anthropic>=0.40",
 ]
 linkedin = ["playwright>=1.45"]
+imagenes = ["pytesseract>=0.3.10", "Pillow>=10"]
 dev = ["pytest>=8"]
 
 [project.scripts]

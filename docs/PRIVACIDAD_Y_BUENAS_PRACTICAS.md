@@ -5,6 +5,7 @@
 - Teléfonos, correos personales, direcciones, documentos de identidad.
 - Hojas de vida, cartas, fotos (`cvs/`, `*.pdf`, `*.docx`).
 - El perfil real (`config/perfil.yaml`) y el histórico (`datos/`).
+- Nombres de reclutadores o de quienes publican, aunque sean públicos en LinkedIn.
 - Credenciales y tokens (`secretos/`, `.env`, `credentials*.json`, `token*.json`).
 
 Todo eso está en `.gitignore`. Antes de cada commit:
@@ -31,7 +32,12 @@ git config user.email "<ID>+<usuario>@users.noreply.github.com"
 - **Un correo por vacante real**, a la dirección publicada para postular, con el CV que
   corresponde. Nada de listas de correos ni envíos a quien no publicó una vacante.
 - Siempre borradores; una persona revisa y envía.
-- No se recolectan perfiles de personas ni se escribe por mensaje directo.
+- No se escribe por mensaje directo ni se sigue o conecta automáticamente.
+- La **lista de personas para conectar** (`personas`) solo usa a los autores de
+  publicaciones de vacantes que ya se vieron (nombre y enlace que el post muestra). No
+  recorre perfiles. Queda en `datos/` (privado), y seguir o conectar lo hace la persona, a
+  mano y de a pocos.
+- Los **afiches** descargados (`datos/imagenes/`) traen teléfonos y correos: nunca al repo.
 - LinkedIn con sesión automatizada: apagado por defecto (riesgo de bloqueo de cuenta).
 - Si alguien pide no recibir más correos, se marca "Descartada" en el histórico y no se vuelve a
   escribir.

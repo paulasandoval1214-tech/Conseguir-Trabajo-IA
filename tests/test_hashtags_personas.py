@@ -95,7 +95,7 @@ def test_rotacion_de_consultas(perfil):
     perfil.datos["busqueda"] = {**perfil.busqueda, "linkedin_feed": True, "rotar_consultas": True,
                                 "hashtags_generales": ["#a", "#b"]}
     total = len(consultas(perfil)) - 1  # sin el feed
-    dia1, est = elegir_consultas(perfil, 4)
+    dia1, est = elegir_consultas(perfil, 4, {"inicio": 0})
     dia2, est = elegir_consultas(perfil, 4, est)
     assert dia1[0]["tipo"] == "feed" and dia2[0]["tipo"] == "feed"
     assert len(dia1) == 4 and {c["url"] for c in dia1[1:]}.isdisjoint({c["url"] for c in dia2[1:]})

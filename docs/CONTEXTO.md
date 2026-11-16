@@ -48,8 +48,8 @@ leyendo páginas completas. Este repositorio convierte ese proceso en código pa
 
 ## Aprendizajes que ya están en las reglas
 
-- La búsqueda de **publicaciones** de LinkedIn ordenada por fecha rinde mucho más que la
-  sección de empleos para encontrar correos.
+- La búsqueda de **publicaciones** de LinkedIn rinde mucho más que la sección de empleos para
+  encontrar correos. Ordenada por **relevancia** (y de la última semana) trae más que por fecha.
 - Consultas cortas (3–5 palabras) funcionan mejor; con muchas palabras LinkedIn no devuelve nada.
 - Hay muchas vacantes de Ecuador, Perú y México en los resultados: se filtran por país.
 - El titular del autor ("Psicóloga | Analista de reclutamiento") confunde la detección del
@@ -61,11 +61,22 @@ leyendo páginas completas. Este repositorio convierte ese proceso en código pa
 - Adjuntar el PDF desde el chat obliga a pasar el archivo completo por la conversación, lo que
   sale caro; por eso existe `adjuntar` (lo hace el computador local, gratis).
 
+- LinkedIn **limita las búsquedas** (unas 15 en un día y empieza a responder "No se han
+  encontrado resultados"). Por eso hay rotación de consultas, el feed de inicio como fuente
+  y la lista de personas para seguir (ver [MEJORAS_BUSQUEDA.md](MEJORAS_BUSQUEDA.md)).
+- Muchas vacantes traen el correo **solo en el afiche**: se leen con OCR en el PC.
+- Los hashtags se eligen con datos (`hashtags`), no a ojo (ver [HASHTAGS.md](HASHTAGS.md)).
+- Los cargos "afines" muy lejanos al perfil se rechazan rápido. Las páginas que republican
+  ofertas a veces traen el correo mal escrito.
+
+La bitácora completa, día por día, está en [HISTORIAL_CAMBIOS.md](HISTORIAL_CAMBIOS.md).
+
 ## Límites y riesgos conocidos
 
 - **LinkedIn con sesión automatizada va contra sus términos** y puede bloquear la cuenta. Por eso
-  el modo local usa Google (posts públicos) por defecto y el modo LinkedIn con Playwright está
-  apagado; si se activa, va con pocas consultas y pausas largas.
+  el modo LinkedIn con Playwright está apagado en el perfil de ejemplo. Si se activa, va con
+  pocas consultas (máximo 8), pausas largas y rotación, y se detiene solo al primer síntoma
+  de límite. Nunca sigue, conecta ni escribe a nadie.
 - Las reglas son heurísticas: pueden descartar alguna vacante buena o dejar pasar alguna dudosa.
   La revisión humana antes de enviar es parte del diseño.
 - "Masivo" no es "spam": un correo por vacante real, a la dirección publicada para postular,

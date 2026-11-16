@@ -22,7 +22,8 @@ teléfonos y correos). Si una imagen ya se leyó, no se vuelve a leer (caché po
 Configuración en el perfil (sección `imagenes:`, todas opcionales):
     usar: true                    # activa la lectura en `buscar` / `noche`
     idioma_ocr: "spa+eng"
-    tesseract_cmd: ""             # Windows: C:\\Program Files\\Tesseract-OCR\\tesseract.exe
+    tesseract_cmd: ""             # vacío = se busca solo (PATH y rutas típicas de Windows)
+    tessdata_dir: ""              # vacío = herramientas/tessdata si existe (lo deja instalar.ps1)
     usar_ia_si_ocr_falla: true
     max_por_ejecucion: 40         # imágenes leídas por ejecución (OCR)
     max_ia_por_ejecucion: 15      # imágenes enviadas a Haiku por ejecución
@@ -58,7 +59,8 @@ INSTRUCCION_IA = (
 
 # ----------------------------------------------------------------------------- utilidades
 def config(perfil: Perfil | None) -> dict:
-    base = {"usar": False, "idioma_ocr": "spa+eng", "tesseract_cmd": "", "usar_ia_si_ocr_falla": True,
+    base = {"usar": False, "idioma_ocr": "spa+eng", "tesseract_cmd": "", "tessdata_dir": "",
+            "usar_ia_si_ocr_falla": True,
             "max_por_ejecucion": 40, "max_ia_por_ejecucion": 15, "leer_con_correo": False}
     if perfil is not None:
         base.update(perfil.datos.get("imagenes") or {})
@@ -118,22 +120,58 @@ def descargar(url: str, carpeta: Path, timeout: int = 20) -> Path:
     return destino
 
 
-def ocr_tesseract(ruta: Path, idioma: str = "spa+eng", tesseract_cmd: str = "") -> str:
+RUTAS_TESSERACT_WINDOWS = [
+    r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+    r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+    os.path.expandvars(r"%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe"),
+]
+
+
+def encontrar_tesseract(configurado: str = "") -> str:
+    """Ruta del ejecutable de Tesseract: la del perfil, la del PATH o una ruta típica de Windows."""
+    import shutil
+
+    if configurado:
+        return configurado
+    en_path = shutil.which("tesseract")
+    if en_path:
+        return en_path
+    for r in RUTAS_TESSERACT_WINDOWS:
+        if r and Path(r).exists():
+            return r
+    return ""
+
+
+def encontrar_tessdata(configurado: str = "") -> str:
+    """Carpeta con spa.traineddata. instalar.ps1 la deja en herramientas/tessdata (sin admin)."""
+    from .config import RAIZ
+
+    if configurado:
+        return configurado
+    local = RAIZ / "herramientas" / "tessdata"
+    return str(local) if (local / "spa.traineddata").exists() else ""
+
+
+def ocr_tesseract(ruta: Path, idioma: str = "spa+eng", tesseract_cmd: str = "", tessdata_dir: str = "") -> str:
     """OCR local. Agranda y pasa a gris las imágenes pequeñas: mejora mucho los afiches."""
     try:
         import pytesseract
         from PIL import Image, ImageOps
     except ImportError as e:
         raise RuntimeError("Falta `pip install pytesseract pillow` (y Tesseract instalado)") from e
-    if tesseract_cmd:
-        pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+    cmd = encontrar_tesseract(tesseract_cmd)
+    if not cmd:
+        raise RuntimeError("No se encontró Tesseract: instálalo (ver docs/INSTALACION_WINDOWS.md)")
+    pytesseract.pytesseract.tesseract_cmd = cmd
+    datos = encontrar_tessdata(tessdata_dir)
+    extra = f'--tessdata-dir "{datos}"' if datos else ""
     with Image.open(ruta) as im:
         im = ImageOps.exif_transpose(im).convert("L")
         if im.width < 1200:
             f = 1200 / max(im.width, 1)
             im = im.resize((int(im.width * f), int(im.height * f)))
         im = ImageOps.autocontrast(im)
-        return pytesseract.image_to_string(im, lang=idioma)
+        return pytesseract.image_to_string(im, lang=idioma, config=extra)
 
 
 def leer_con_ia(ruta: Path, modelo: str = "claude-haiku-5-5") -> str:
@@ -175,7 +213,7 @@ def leer_posts(
     usar_ia = cfg["usar_ia_si_ocr_falla"] if usar_ia is None else usar_ia
     modelo = (perfil.ia.get("modelo") if perfil else None) or "claude-haiku-5-5"
     descargar_fn = descargar_fn or descargar
-    ocr_fn = ocr_fn or (lambda r: ocr_tesseract(r, cfg["idioma_ocr"], cfg["tesseract_cmd"]))
+    ocr_fn = ocr_fn or (lambda r: ocr_tesseract(r, cfg["idioma_ocr"], cfg["tesseract_cmd"], cfg["tessdata_dir"]))
     ia_fn = ia_fn or (lambda r: leer_con_ia(r, modelo))
     cache_ruta = carpeta / "lecturas.json"
     cache: dict[str, dict] = {}

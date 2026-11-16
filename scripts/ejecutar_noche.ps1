@@ -1,4 +1,4 @@
-# Ejecución nocturna: revisa respuestas, busca vacantes y deja borradores en Gmail.
+﻿# Ejecución nocturna: revisa respuestas, busca vacantes y deja borradores en Gmail.
 # Nunca envía correos. Deja log en datos\logs\.
 Set-Location (Split-Path $PSScriptRoot -Parent)
 New-Item -ItemType Directory -Force -Path datos\logs | Out-Null

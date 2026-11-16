@@ -23,3 +23,6 @@ dist/
 # --- Sistema ---
 .DS_Store
 Thumbs.db
+
+# --- Herramientas descargadas por instalar.ps1 (Tesseract tessdata) ---
+herramientas/

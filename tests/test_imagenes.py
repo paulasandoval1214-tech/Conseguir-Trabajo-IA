@@ -114,7 +114,7 @@ def test_cli_importar_con_imagenes(tmp_path, monkeypatch, perfil, capsys):
     perfil.datos["imagenes"] = {"usar": True, "usar_ia_si_ocr_falla": False}
     monkeypatch.setattr(cli, "cargar_perfil", lambda _r: perfil)
     monkeypatch.setattr(imagenes, "descargar", lambda url, carpeta, timeout=20: tmp_path / "a.jpg")
-    monkeypatch.setattr(imagenes, "ocr_tesseract", lambda ruta, idioma="", cmd="":
+    monkeypatch.setattr(imagenes, "ocr_tesseract", lambda ruta, *args:
                         "VACANTE\nAnalista de Selección\nBogotá\nHV a: seleccion@empresa-ejemplo.com")
     crudo = tmp_path / "crudo.json"
     crudo.write_text(json.dumps([_post_con_afiche().a_dict()], ensure_ascii=False), encoding="utf-8")

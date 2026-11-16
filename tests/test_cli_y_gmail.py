@@ -48,3 +48,26 @@ def test_adivinar_linea(perfil):
     assert gmail_api.adivinar_linea("Analista de Datos", "experiencia en Power BI", perfil) == "datos"
     assert gmail_api.adivinar_linea("Analista de Selección", "procesos de selección y onboarding",
                                      perfil) == "gestion_humana"
+
+
+def test_js_cargador_es_js_valido(tmp_path, monkeypatch, perfil):
+    import shutil
+    import subprocess
+
+    import pytest
+
+    monkeypatch.setattr(cli, "cargar_perfil", lambda _r: perfil)
+    destino = tmp_path / "cargador.js"
+    cli.main(["--historial", str(tmp_path / "no.md"), "js", "--cargador", "-o", str(destino)])
+    js = destino.read_text(encoding="utf-8")
+    assert "localStorage.cti_run" in js and "localStorage.cti_version" in js
+    if shutil.which("node") is None:
+        pytest.skip("sin node para validar la sintaxis")
+    # Simula localStorage y comprueba que lo guardado es el extractor completo y una envoltura válida.
+    prueba = tmp_path / "p.js"
+    prueba.write_text("const localStorage = {};\n" + js +
+                      "\nnew Function('return ' + localStorage.cti_run);"
+                      "\nnew Function(localStorage.cti_body);"
+                      "\nif (!JSON.parse(localStorage.cti_cfg).claves.length) throw new Error('sin claves');",
+                      encoding="utf-8")
+    subprocess.run(["node", str(prueba)], check=True)

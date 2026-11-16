@@ -83,6 +83,13 @@ def motivo_descarte(v: Vacante, perfil: Perfil, ya_postulados: set[str]) -> str:
 
     if v.correo.lower() in ya_postulados:
         return "ya postulada (correo en historial)"
+    # Descartes decididos a mano en sesiones anteriores (p. ej. empresa de otro país sin
+    # pista en el texto). En el perfil: `correos_descartados: ["@dominio.com", "x@y.com"]`.
+    correo = v.correo.lower()
+    for d in perfil.datos.get("correos_descartados", []) or []:
+        d = str(d).lower().strip()
+        if d and (correo == d or (d.startswith("@") and correo.endswith(d))):
+            return "descartada a mano (perfil: correos_descartados)"
     if RE_BUSCA_EMPLEO.search(texto) and not re.search(r"buscamos|estamos buscando|vacante", texto):
         return "es una persona buscando empleo, no una vacante"
     if RE_CERRADA.search(texto):

@@ -11,6 +11,7 @@ Comandos que no necesitan credenciales (los usa el asistente en el chat y tambi�
 
 Comandos para el modo local (Windows, con credenciales o programas instalados):
   imagenes    Lee los afiches de los posts sin correo (OCR Tesseract y, si falla, Claude Haiku).
+  sesion-linkedin  Abre el navegador para iniciar sesión en LinkedIn una vez (se guarda en secretos/).
   buscar      LinkedIn con sesión (opcional) + Google/Serper -> imágenes -> importar.
   borradores  Crea borradores en Gmail con el CV adjunto (nunca envía).
   adjuntar    Pone el CV correcto en borradores que no tienen adjunto.
@@ -169,9 +170,15 @@ def cmd_consultas(a, perfil):
 
 
 def cmd_js(a, perfil):
-    from .fuentes.navegador import script_extractor
+    from .fuentes.navegador import script_cargador, script_extractor, version_extractor
     hist = Historial.leer(_ruta_historial(perfil, a.historial))
-    js = script_extractor(perfil, hist.correos(), incluir_imagenes=a.imagenes, scrolls=a.scrolls)
+    if a.version:
+        print(version_extractor())
+        return
+    if a.cargador:
+        js = script_cargador(perfil, hist.correos(), incluir_imagenes=a.imagenes)
+    else:
+        js = script_extractor(perfil, hist.correos(), incluir_imagenes=a.imagenes, scrolls=a.scrolls)
     if a.salida:
         Path(a.salida).write_text(js, encoding="utf-8")
         print(f"Script guardado en {a.salida} ({len(js)} caracteres)")
@@ -264,6 +271,11 @@ def cmd_personas(a, perfil):
     for f in pendientes[: a.top]:
         print(f"  {f['puntaje']:>3}  {f['nombre'][:40]:40} {f['tipo']:10} {f['lineas'][:25]:25} {f['url']}")
     print(f"\nCSV: {ruta_csv}\nMD:  {ruta_md}")
+
+
+def cmd_sesion_linkedin(a, perfil):
+    from .fuentes import linkedin
+    linkedin.iniciar_sesion(perfil)
 
 
 def cmd_buscar(a, perfil):
@@ -363,6 +375,9 @@ def main(argv: list[str] | None = None) -> int:
     s.add_argument("-o", "--salida")
     s.add_argument("--imagenes", action="store_true", help="Traer también posts sin correo pero con afiche")
     s.add_argument("--scrolls", type=int, help="Cuántas veces bajar la página (feed: 25)")
+    s.add_argument("--cargador", action="store_true",
+                   help="JS que guarda el extractor en el navegador (luego: await eval(localStorage.cti_run))")
+    s.add_argument("--version", action="store_true", help="Solo la versión del extractor")
     s.set_defaults(f=cmd_js)
     s = sub.add_parser("importar", help="Crudo -> vacantes filtradas + borradores redactados")
     s.add_argument("archivos", nargs="+")
@@ -385,6 +400,8 @@ def main(argv: list[str] | None = None) -> int:
     s.set_defaults(f=cmd_registrar)
     sub.add_parser("resumen").set_defaults(f=cmd_resumen)
     sub.add_parser("buscar").set_defaults(f=cmd_buscar)
+    sub.add_parser("sesion-linkedin", help="Abrir el navegador para iniciar sesión una vez").set_defaults(
+        f=cmd_sesion_linkedin)
     s = sub.add_parser("borradores"); s.add_argument("archivo", nargs="?")
     s.add_argument("--simular", action="store_true"); s.set_defaults(f=cmd_borradores)
     s = sub.add_parser("adjuntar"); s.add_argument("--simular", action="store_true"); s.set_defaults(f=cmd_adjuntar)

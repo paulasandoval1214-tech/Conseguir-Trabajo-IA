@@ -1,0 +1,7 @@
+# Windows necesita CRLF en .bat/.ps1 (git lo convierte al descargar)
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+*.py text eol=lf
+*.js text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf

@@ -77,6 +77,10 @@ busqueda:
 # Correos que nunca se toman como contacto de postulación
 correos_ignorar: ["accessibility@", "info@", "noreply", "no-reply", "privacy@", "soporte@"]
 
+# Correos o dominios que ya descartaste a mano y no quieres volver a ver (p. ej. otra empresa
+# de otro país sin pista en el texto). Afecta `importar`, `hashtags` y `personas`.
+correos_descartados: []                  # ej.: ["@empresa-de-otro-pais.com", "persona@empresa.com"]
+
 # Lectura de afiches (posts cuyo correo está dentro de la imagen). Solo en el computador local.
 imagenes:
   usar: true                              # requiere Tesseract (ver docs/INSTALACION_WINDOWS.md)

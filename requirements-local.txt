@@ -3,5 +3,8 @@
 google-api-python-client>=2.100
 google-auth-oauthlib>=1.2
 anthropic>=0.40
-# Opcional, solo si activas linkedin_con_sesion (ver advertencia en docs):
-# playwright>=1.45
+# Lectura de afiches (OCR). Además hay que instalar Tesseract (scripts/instalar.ps1 lo hace):
+pytesseract>=0.3.10
+Pillow>=10
+# Búsqueda en LinkedIn desde el PC (linkedin_con_sesion: true; ver advertencia en docs):
+playwright>=1.45

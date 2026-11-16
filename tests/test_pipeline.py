@@ -113,3 +113,13 @@ def test_cargo_desde_hashtag_y_paises_nuevos():
     assert extraer_cargo(texto) == "Auxiliar de Talento Humano"
     assert detectar_pais("banco requiere analista en managua, nicaragua") == "nicaragua"
     assert extraer_ciudad("Ubicación: Soledad, Atlántico") == "Soledad"
+
+
+def test_correos_descartados_a_mano(posts, perfil):
+    from buscador_empleo.extraccion import post_a_vacantes as pav
+    vs = [v for p in posts for v in pav(p, perfil.correos_ignorar)]
+    objetivo = vs[0].correo
+    perfil.datos["correos_descartados"] = ["@" + objetivo.split("@")[1]]
+    res = filtros.aplicar(vs, perfil, set())
+    assert all(v.motivo_descarte.startswith("descartada a mano") for v in res
+               if v.correo.endswith(objetivo.split("@")[1]))

@@ -61,14 +61,34 @@ def _descargar_imagenes(ctx, posts: list[PostCrudo], carpeta: Path) -> int:
     return n
 
 
+def sesion_activa(page) -> bool:
+    return not any(x in page.url for x in ("login", "uas/", "checkpoint", "authwall"))
+
+
+def iniciar_sesion(perfil: Perfil) -> None:
+    """Abre el navegador para que la persona inicie sesión a mano UNA vez (comando `sesion-linkedin`)."""
+    from playwright.sync_api import sync_playwright
+
+    carpeta = perfil.resolver("secretos/perfil_navegador")
+    with sync_playwright() as p:
+        ctx = p.chromium.launch_persistent_context(str(carpeta), headless=False)
+        page = ctx.new_page()
+        page.goto("https://www.linkedin.com/login")
+        input("Inicia sesión en LinkedIn en la ventana que se abrió y luego presiona Enter aquí... ")
+        page.goto("https://www.linkedin.com/feed/")
+        print("Sesión guardada." if sesion_activa(page) else "No se detectó la sesión; inténtalo de nuevo.")
+        ctx.close()
+
+
 def buscar(perfil: Perfil, conocidos: set[str]) -> list[PostCrudo]:
     b = perfil.busqueda
     if not b.get("linkedin_con_sesion", False):
         return []
     try:
         from playwright.sync_api import sync_playwright
-    except ImportError as e:  # pragma: no cover
-        raise SystemExit("Instala Playwright: pip install playwright && playwright install chromium") from e
+    except ImportError:  # pragma: no cover
+        print("[LinkedIn] Falta Playwright: pip install playwright && playwright install chromium. Se omite.")
+        return []
 
     carpeta = perfil.resolver("secretos/perfil_navegador")
     max_c = min(int(b.get("max_consultas_linkedin", 6)), 8)
@@ -84,11 +104,14 @@ def buscar(perfil: Perfil, conocidos: set[str]) -> list[PostCrudo]:
     de_hoy, estado_nuevo = elegir_consultas(perfil, max_c, estado)
 
     with sync_playwright() as p:
-        ctx = p.chromium.launch_persistent_context(str(carpeta), headless=False)
+        ctx = p.chromium.launch_persistent_context(str(carpeta), headless=bool(b.get("linkedin_headless", False)))
         page = ctx.new_page()
         page.goto("https://www.linkedin.com/feed/")
-        if "login" in page.url or "uas/" in page.url:
-            input("Inicia sesión en LinkedIn en la ventana abierta y presiona Enter aquí... ")
+        if not sesion_activa(page):
+            # En la tarea programada nadie puede escribir: se avisa y se sigue con Gmail/Google.
+            print("[LinkedIn] No hay sesión iniciada. Corre una vez scripts\\iniciar_sesion_linkedin.bat. Se omite.")
+            ctx.close()
+            return []
         for item in de_hoy:
             page.goto(item["url"])
             crudo = page.evaluate(js_feed if item["tipo"] == "feed" else js_normal)
