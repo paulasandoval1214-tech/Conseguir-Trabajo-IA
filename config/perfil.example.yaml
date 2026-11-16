@@ -29,7 +29,7 @@ lineas:
                      reportes, people analytics, inteligencia de negocios]
     palabras_excluir: [contador, contable, contabilidad, tesoreria, tesorería, cartera, nomina,
                        nómina, riesgo de mercado, auditor, desarrollador, fullstack, qa, ciberseguridad,
-                       senior, sr]
+                       senior, sr, gerente, director, directora]
     consultas:
       - "analista de datos Bogotá hoja de vida"
       - "analista de información power bi hoja de vida"

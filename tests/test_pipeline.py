@@ -1,6 +1,7 @@
 from buscador_empleo import filtros
 from buscador_empleo.extraccion import (extraer_anios, extraer_asunto, extraer_cargo,
-                                        extraer_ingles, detectar_pais, post_a_vacantes)
+                                        extraer_ciudad, extraer_ingles, detectar_pais,
+                                        post_a_vacantes)
 from buscador_empleo.historial import Historial, Registro
 from buscador_empleo.redaccion import redactar
 
@@ -103,3 +104,12 @@ def test_correo_con_tilde_no_se_recorta():
     # "Matías.x@..." no es un correo válido: no debe salir "as.x@..." recortado
     assert RE_CORREO.findall("escribe a Matías.perez@demo-ejemplo.com hoy") == []
     assert RE_CORREO.findall("escribe a matias.perez@demo-ejemplo.com") == ["matias.perez@demo-ejemplo.com"]
+
+
+def test_cargo_desde_hashtag_y_paises_nuevos():
+    texto = ("¡Estamos buscando talento! Experiencia en procesos administrativos. "
+             "Ubicación: Bogotá. Envía tu hoja de vida a: bienestar@empresa-ejemplo.com "
+             "#OfertaLaboral #AuxiliarDeTalentoHumano")
+    assert extraer_cargo(texto) == "Auxiliar de Talento Humano"
+    assert detectar_pais("banco requiere analista en managua, nicaragua") == "nicaragua"
+    assert extraer_ciudad("Ubicación: Soledad, Atlántico") == "Soledad"

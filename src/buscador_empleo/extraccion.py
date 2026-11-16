@@ -30,6 +30,8 @@ PAISES = {
     "panama": ["panama"],
     "costa rica": ["costa rica"],
     "guatemala": ["guatemala"],
+    "nicaragua": ["nicaragua", "managua"],
+    "honduras": ["honduras", "tegucigalpa", "san pedro sula"],
     "espana": ["espana", "madrid", "barcelona"],
 }
 
@@ -37,7 +39,7 @@ CIUDADES = ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Bucara
             "Chía", "Pereira", "Yumbo", "Cajicá", "Zipaquirá", "Funza", "Mosquera", "Soacha",
             "Itagüí", "Envigado", "Rionegro", "Girardot", "Manizales", "Ibagué", "Villavicencio",
             "Valledupar", "Tunja", "Neiva", "Santa Marta", "Cúcuta", "Armenia", "Popayán", "Pasto",
-            "Montería", "Sincelejo", "Facatativá", "Tocancipá"]
+            "Montería", "Sincelejo", "Facatativá", "Tocancipá", "Soledad"]
 
 PALABRAS_CARGO = (
     "analista|profesional|psic[oó]log[oa]|generalista|auxiliar|asistente|coordinador[a]?|"
@@ -115,6 +117,14 @@ def extraer_cargo(texto: str) -> str:
             cargo = _limpiar_cargo(m.group(1))
             if len(cargo) >= 4:
                 return cargo[0].upper() + cargo[1:]
+    # Último recurso: hashtag tipo #AuxiliarDeTalentoHumano
+    m = re.search(rf"#((?:{PALABRAS_CARGO})(?:[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)+)\b", limpiar(texto), re.IGNORECASE)
+    if m and m.group(1)[0].isupper():
+        palabras = re.findall(r"[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+", m.group(1))
+        if len(palabras) >= 2:
+            cargo = " ".join([palabras[0]] + [w.lower() if w.lower() in ("de", "del", "en", "y") else w
+                                               for w in palabras[1:]])
+            return cargo
     return ""
 
 
