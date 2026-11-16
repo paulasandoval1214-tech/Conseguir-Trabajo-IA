@@ -19,6 +19,9 @@ export PYTHONPATH=src
   `config/perfil.example.yaml` preguntando a la persona lo mínimo.
 - **Histórico**: léelo del proyecto (`claude/historico_postulaciones.md`) y guárdalo como
   `datos/historial.md`. Sirve para no repetir correos.
+- **Personas para conectar**: si existe `claude/personas_para_conectar.csv` en el proyecto,
+  guárdalo como `datos/personas_para_conectar.csv`. Así se conservan los estados que la
+  persona marcó (Seguido / Conectado / Descartar). Al final de la sesión súbelo de nuevo.
 - **CV**: si hay que adjuntar desde el chat, los PDF deben estar en el entorno (descárgalos
   del correo de la persona con el conector de Gmail si ya los envió antes).
 - Revisa en Gmail los enviados recientes si hay dudas de duplicados.
