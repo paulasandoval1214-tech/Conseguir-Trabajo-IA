@@ -17,7 +17,7 @@ from pathlib import Path
 COLUMNAS = ["Fecha", "Empresa", "Cargo", "Ciudad / modalidad", "Correo", "Línea",
             "Fuente", "Estado", "Notas"]
 
-ESTADOS = ["Borrador listo", "Programado", "Enviado", "En proceso", "Rechazado",
+ESTADOS = ["Borrador listo", "Programado", "Enviado", "En proceso", "Rechazado", "Rebotado",
            "Sin respuesta", "Oferta", "Descartada"]
 
 

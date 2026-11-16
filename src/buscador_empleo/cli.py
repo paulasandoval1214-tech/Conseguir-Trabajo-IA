@@ -1,18 +1,21 @@
 """Línea de comandos: `python -m buscador_empleo <comando> -p config/perfil.yaml`.
 
-Comandos pensados para el asistente en el chat (sin red, sin credenciales):
-  consultas   URLs de búsqueda de LinkedIn por línea.
+Comandos que no necesitan credenciales (los usa el asistente en el chat y también el modo local):
+  consultas   URLs a visitar en LinkedIn: feed, hashtags y búsquedas por palabras.
   js          Script extractor listo para inyectar en el navegador.
   importar    JSON crudo del extractor -> vacantes filtradas + borradores redactados.
   registrar   Agrega al historial las vacantes aceptadas (estado "Borrador listo").
   resumen     Conteo por estado del historial.
+  hashtags    Ranking de hashtags según cuántas vacantes útiles trajeron (afina docs/HASHTAGS.md).
+  personas    Ranking de autores que publican vacantes útiles -> lista para seguir/conectar a mano.
 
-Comandos para el modo local (Windows, con credenciales):
-  buscar      Google/Serper (+ LinkedIn opcional) -> importar.
+Comandos para el modo local (Windows, con credenciales o programas instalados):
+  imagenes    Lee los afiches de los posts sin correo (OCR Tesseract y, si falla, Claude Haiku).
+  buscar      LinkedIn con sesión (opcional) + Google/Serper -> imágenes -> importar.
   borradores  Crea borradores en Gmail con el CV adjunto (nunca envía).
   adjuntar    Pone el CV correcto en borradores que no tienen adjunto.
   respuestas  Marca enviados y detecta rechazos / entrevistas.
-  noche       buscar + borradores + respuestas, y deja un reporte.
+  noche       respuestas + buscar + borradores + hashtags + personas, y deja un reporte.
 """
 
 from __future__ import annotations
@@ -21,6 +24,9 @@ import argparse
 import json
 import sys
 from pathlib import Path
+
+import datetime as dt
+import glob
 
 from . import clasificador, filtros
 from .config import Perfil, cargar_perfil
@@ -44,6 +50,52 @@ def _leer_crudos(archivos: list[str]) -> list[PostCrudo]:
             datos = json.loads(datos)
         posts += [PostCrudo.desde_dict(d) for d in datos]
     return posts
+
+
+def _archivos(patrones: list[str]) -> list[str]:
+    """Expande comodines también en Windows (PowerShell no expande `datos/crudo/*.json`)."""
+    salida: list[str] = []
+    for p in patrones:
+        salida += sorted(glob.glob(p)) if any(c in p for c in "*?[") else [p]
+    return salida
+
+
+def _crudos_con_fecha(perfil: Perfil) -> list[tuple[PostCrudo, str]]:
+    """Todos los posts guardados en datos/crudo, con la fecha del archivo (para rankings)."""
+    salida: list[tuple[PostCrudo, str]] = []
+    vistos: set[str] = set()
+
+    def agregar(p: PostCrudo, fecha: str) -> None:
+        k = p.texto[:160]
+        if k not in vistos:
+            vistos.add(k)
+            salida.append((p, fecha))
+
+    for a in sorted((perfil.carpeta_datos / "crudo").glob("*.json")):
+        fecha = dt.date.fromtimestamp(a.stat().st_mtime).isoformat()
+        try:
+            for p in _leer_crudos([str(a)]):
+                agregar(p, fecha)
+        except ValueError:
+            print(f"  (se omite {a.name}: no es JSON válido)")
+    # Las vacantes procesadas guardan el texto del post: sirven para días sin crudo guardado.
+    for a in sorted(perfil.carpeta_datos.glob("vacantes_*.json")):
+        fecha = a.stem.replace("vacantes_", "")
+        try:
+            datos = json.loads(a.read_text(encoding="utf-8"))
+        except ValueError:
+            continue
+        for d in datos:
+            if d.get("texto"):
+                agregar(PostCrudo(texto=d["texto"], correos=[d.get("correo", "")], autor=d.get("autor", ""),
+                                  autor_url=d.get("autor_url", ""), url=d.get("url", ""),
+                                  fuente=d.get("fuente", "")), fecha)
+    return salida
+
+
+def _guardar_crudos(posts: list[PostCrudo], ruta: Path) -> None:
+    ruta.parent.mkdir(parents=True, exist_ok=True)
+    ruta.write_text(json.dumps([p.a_dict() for p in posts], ensure_ascii=False, indent=1), encoding="utf-8")
 
 
 def _procesar(posts: list[PostCrudo], perfil: Perfil, hist: Historial, usar_ia: bool) -> list[Vacante]:
@@ -103,14 +155,23 @@ def _registrar(vacantes: list[Vacante], perfil: Perfil, hist: Historial, estado:
 
 # ----------------------------------------------------------------------------- comandos
 def cmd_consultas(a, perfil):
-    from .fuentes.navegador import consultas
-    print(json.dumps(consultas(perfil), ensure_ascii=False, indent=1))
+    from .fuentes.navegador import consultas, elegir_consultas
+    if a.hoy:
+        # Lo de hoy, en rotación: guarda dónde quedó para que la próxima sesión siga desde ahí.
+        ruta = perfil.carpeta_datos / "rotacion_linkedin.json"
+        estado = json.loads(ruta.read_text(encoding="utf-8")) if ruta.exists() else {}
+        lista, nuevo = elegir_consultas(perfil, a.hoy, estado)
+        ruta.parent.mkdir(parents=True, exist_ok=True)
+        ruta.write_text(json.dumps(nuevo), encoding="utf-8")
+    else:
+        lista = consultas(perfil, set(a.tipo) if a.tipo else None)
+    print(json.dumps(lista, ensure_ascii=False, indent=1))
 
 
 def cmd_js(a, perfil):
     from .fuentes.navegador import script_extractor
     hist = Historial.leer(_ruta_historial(perfil, a.historial))
-    js = script_extractor(perfil, hist.correos())
+    js = script_extractor(perfil, hist.correos(), incluir_imagenes=a.imagenes, scrolls=a.scrolls)
     if a.salida:
         Path(a.salida).write_text(js, encoding="utf-8")
         print(f"Script guardado en {a.salida} ({len(js)} caracteres)")
@@ -118,9 +179,34 @@ def cmd_js(a, perfil):
         print(js)
 
 
+def _leer_imagenes(posts: list[PostCrudo], perfil: Perfil, usar_ia: bool | None = None) -> dict:
+    from . import imagenes
+    est = imagenes.leer_posts(posts, perfil, usar_ia=usar_ia)
+    if est["candidatos"]:
+        print(f"[imágenes] posts con afiche: {est['candidatos']} · leídos: {est['leidos']} · "
+              f"con correo: {est['con_correo']} · OCR: {est['ocr']} · IA: {est['ia']} · errores: {est['errores']}")
+    return est
+
+
+def cmd_imagenes(a, perfil):
+    """Lee los afiches y guarda lo leído DENTRO de los mismos archivos crudos."""
+    total = {"candidatos": 0, "leidos": 0, "con_correo": 0, "ocr": 0, "ia": 0, "errores": 0}
+    for archivo in _archivos(a.archivos):
+        posts = _leer_crudos([archivo])
+        est = _leer_imagenes(posts, perfil, usar_ia=False if a.sin_ia else None)
+        if est["leidos"]:
+            _guardar_crudos(posts, Path(archivo))
+        for k in total:
+            total[k] += est[k]
+    print(json.dumps(total, ensure_ascii=False))
+
+
 def cmd_importar(a, perfil):
     hist = Historial.leer(_ruta_historial(perfil, a.historial))
-    vacantes = _procesar(_leer_crudos(a.archivos), perfil, hist, a.ia)
+    archivos = _archivos(a.archivos)
+    if a.imagenes:
+        cmd_imagenes(argparse.Namespace(archivos=archivos, sin_ia=False), perfil)
+    vacantes = _procesar(_leer_crudos(archivos), perfil, hist, a.ia)
     rv, rb = _guardar_resultado(vacantes, perfil)
     _imprimir_tabla(vacantes)
     print(f"\nVacantes: {rv}\nBorradores redactados: {rb}")
@@ -145,13 +231,39 @@ def cmd_resumen(a, perfil):
 
 def _buscar(perfil, hist):
     from .fuentes import google, linkedin
-    posts = google.buscar(perfil) if perfil.busqueda.get("usar_google", True) else []
-    posts += linkedin.buscar(perfil, hist.correos())
-    carpeta = perfil.carpeta_datos / "crudo"
-    carpeta.mkdir(parents=True, exist_ok=True)
-    (carpeta / f"crudo_{hoy()}.json").write_text(
-        json.dumps([p.__dict__ for p in posts], ensure_ascii=False, indent=1), encoding="utf-8")
+    posts = linkedin.buscar(perfil, hist.correos())
+    posts += google.buscar(perfil) if perfil.busqueda.get("usar_google", True) else []
+    if perfil.imagenes.get("usar", False):
+        _leer_imagenes(posts, perfil)
+    _guardar_crudos(posts, perfil.carpeta_datos / "crudo" / f"crudo_{hoy()}.json")
     return posts
+
+
+def cmd_hashtags(a, perfil):
+    from . import hashtags
+    posts = [p for p, _ in _crudos_con_fecha(perfil)]
+    filas = hashtags.analizar(posts, perfil, minimo_posts=a.minimo)
+    tabla = hashtags.tabla_markdown(filas, perfil, a.maximo)
+    ruta = perfil.carpeta_datos / "hashtags_ranking.md"
+    ruta.write_text(f"# Ranking de hashtags ({hoy()})\n\nPosts analizados: {len(posts)}\n\n{tabla}\n",
+                    encoding="utf-8")
+    print(tabla)
+    print(f"\nGuardado en {ruta}")
+    if a.actualizar_doc:
+        cambio = hashtags.actualizar_doc(tabla, hoy(), len(posts))
+        print("docs/HASHTAGS.md actualizado" if cambio else "docs/HASHTAGS.md sin cambios")
+
+
+def cmd_personas(a, perfil):
+    from . import personas
+    hist = Historial.leer(_ruta_historial(perfil, a.historial))
+    filas = personas.agrupar(_crudos_con_fecha(perfil), perfil, personas.fuentes_del_historial(hist))
+    ruta_csv, ruta_md = personas.escribir(filas, perfil.carpeta_datos)
+    pendientes = [f for f in filas if f["estado"] == "Pendiente"]
+    print(f"{len(filas)} autores en el ranking ({len(pendientes)} pendientes). Los primeros:")
+    for f in pendientes[: a.top]:
+        print(f"  {f['puntaje']:>3}  {f['nombre'][:40]:40} {f['tipo']:10} {f['lineas'][:25]:25} {f['url']}")
+    print(f"\nCSV: {ruta_csv}\nMD:  {ruta_md}")
 
 
 def cmd_buscar(a, perfil):
@@ -220,10 +332,18 @@ def cmd_noche(a, perfil):
     print("== Borradores ==")
     creados = _crear_borradores(perfil, hist, vacantes, simular=False)
     hist.escribir(ruta, {k: l.nombre for k, l in perfil.lineas.items()})
+    print("== Rankings (hashtags y personas) ==")
+    try:
+        cmd_hashtags(argparse.Namespace(minimo=2, maximo=40, actualizar_doc=False), perfil)
+        cmd_personas(argparse.Namespace(top=10, historial=a.historial), perfil)
+    except Exception as e:  # los rankings son ayuda, no deben tumbar la noche
+        print(f"  (rankings no disponibles: {type(e).__name__}: {e})")
     reporte = perfil.carpeta_datos / f"reporte_{hoy()}.md"
     reporte.write_text(
         f"# Reporte {hoy()}\n\n- Borradores nuevos: {len(creados)}\n- Cambios de estado: {len(cambios)}\n"
-        f"- Historial: {json.dumps(hist.resumen(), ensure_ascii=False)}\n", encoding="utf-8")
+        f"- Historial: {json.dumps(hist.resumen(), ensure_ascii=False)}\n"
+        f"- Personas para conectar: datos/personas_para_conectar.md\n"
+        f"- Hashtags: datos/hashtags_ranking.md\n", encoding="utf-8")
     print(f"Reporte: {reporte}")
 
 
@@ -235,10 +355,31 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--historial", help="Ruta al historial .md (por defecto datos/historial.md)")
     sub = ap.add_subparsers(dest="comando", required=True)
 
-    sub.add_parser("consultas").set_defaults(f=cmd_consultas)
-    s = sub.add_parser("js"); s.add_argument("-o", "--salida"); s.set_defaults(f=cmd_js)
-    s = sub.add_parser("importar"); s.add_argument("archivos", nargs="+")
-    s.add_argument("--ia", action="store_true", help="Revisar aceptadas con Claude Haiku"); s.set_defaults(f=cmd_importar)
+    s = sub.add_parser("consultas", help="URLs a visitar (feed, hashtags, palabras)")
+    s.add_argument("--tipo", nargs="*", choices=["feed", "hashtag", "palabras"])
+    s.add_argument("--hoy", type=int, metavar="N", help="Solo N para hoy, en rotación entre sesiones")
+    s.set_defaults(f=cmd_consultas)
+    s = sub.add_parser("js", help="Script extractor con la configuración del perfil")
+    s.add_argument("-o", "--salida")
+    s.add_argument("--imagenes", action="store_true", help="Traer también posts sin correo pero con afiche")
+    s.add_argument("--scrolls", type=int, help="Cuántas veces bajar la página (feed: 25)")
+    s.set_defaults(f=cmd_js)
+    s = sub.add_parser("importar", help="Crudo -> vacantes filtradas + borradores redactados")
+    s.add_argument("archivos", nargs="+")
+    s.add_argument("--ia", action="store_true", help="Revisar aceptadas con Claude Haiku")
+    s.add_argument("--imagenes", action="store_true", help="Leer antes los afiches (OCR / Haiku)")
+    s.set_defaults(f=cmd_importar)
+    s = sub.add_parser("imagenes", help="Lee afiches de posts sin correo (OCR y Haiku)")
+    s.add_argument("archivos", nargs="+"); s.add_argument("--sin-ia", action="store_true", dest="sin_ia")
+    s.set_defaults(f=cmd_imagenes)
+    s = sub.add_parser("hashtags", help="Ranking de hashtags útiles")
+    s.add_argument("--minimo", type=int, default=2, help="Posts mínimos para aparecer (por defecto 2)")
+    s.add_argument("--maximo", type=int, default=40)
+    s.add_argument("--actualizar-doc", action="store_true", dest="actualizar_doc",
+                   help="Reescribe la tabla de docs/HASHTAGS.md")
+    s.set_defaults(f=cmd_hashtags)
+    s = sub.add_parser("personas", help="Ranking de autores para seguir/conectar a mano")
+    s.add_argument("--top", type=int, default=15); s.set_defaults(f=cmd_personas)
     s = sub.add_parser("registrar"); s.add_argument("archivo")
     s.add_argument("--estado", default="Borrador listo"); s.add_argument("--solo", nargs="*")
     s.set_defaults(f=cmd_registrar)

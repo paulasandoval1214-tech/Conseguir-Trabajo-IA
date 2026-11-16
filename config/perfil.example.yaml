@@ -36,6 +36,8 @@ lineas:
       - "power bi Bogotá envía tu hoja de vida"
       - "analista BI Bogotá envía tu hoja de vida"
       - "people analytics vacante hoja de vida"
+    # Hashtags de la línea (se buscan como keywords=%23...). Afínalos con `hashtags` y docs/HASHTAGS.md.
+    hashtags: ["#analistadedatos", "#powerbi", "#dataanalytics", "#peopleanalytics"]
 
   gestion_humana:
     nombre: "Gestión humana"
@@ -51,15 +53,22 @@ lineas:
       - "vacante psicóloga selección Bogotá"
       - "analista talento humano Bogotá envía hoja de vida"
       - "generalista recursos humanos Bogotá hoja de vida"
+    hashtags: ["#talentohumano", "#gestionhumana", "#recursoshumanos", "#seleccion"]
 
 busqueda:
-  periodo_linkedin: "past-month"          # past-24h | past-week | past-month
+  periodo_linkedin: "past-week"           # past-24h | past-week | past-month (semana = vacantes vigentes)
+  orden_linkedin: "relevancia"            # relevancia trae más resultados que "fecha" (15-nov-2026)
   periodo_google: "qdr:m"                 # qdr:w = última semana, qdr:m = último mes
   max_consultas_google: 12
   usar_google: true
   tolerancia_anios: 1                     # acepta vacantes que pidan hasta N años más
   scrolls: 12
   max_texto: 900               # caracteres por post que devuelve el extractor (menos = menos tokens)
+  # Fuentes que no gastan búsquedas por palabras (ver docs/HASHTAGS.md y docs/MEJORAS_BUSQUEDA.md)
+  linkedin_feed: true                     # recorrer el feed de inicio (sirve más si se sigue a reclutadoras)
+  scrolls_feed: 25
+  hashtags_generales: ["#vacantesbogota", "#ofertalaboral", "#empleobogota", "#trabajosihay"]
+  rotar_consultas: true                   # cada noche sigue donde quedó la anterior (no repite siempre las mismas)
   # Modo LinkedIn con sesión: va contra los términos de LinkedIn. Apagado por defecto.
   linkedin_con_sesion: false
   max_consultas_linkedin: 6
@@ -67,6 +76,17 @@ busqueda:
 
 # Correos que nunca se toman como contacto de postulación
 correos_ignorar: ["accessibility@", "info@", "noreply", "no-reply", "privacy@", "soporte@"]
+
+# Lectura de afiches (posts cuyo correo está dentro de la imagen). Solo en el computador local.
+imagenes:
+  usar: true                              # requiere Tesseract (ver docs/INSTALACION_WINDOWS.md)
+  idioma_ocr: "spa+eng"
+  tesseract_cmd: ""                       # Windows: "C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+  usar_ia_si_ocr_falla: true              # Claude Haiku solo si el OCR no encontró correo
+  max_por_ejecucion: 40
+  max_ia_por_ejecucion: 15
+  max_por_post: 3
+  leer_con_correo: false                  # true = leer también afiches de posts que ya traen correo
 
 ia:
   usar: true                              # requiere ANTHROPIC_API_KEY en .env

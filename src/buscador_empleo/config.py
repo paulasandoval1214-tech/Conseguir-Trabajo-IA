@@ -35,6 +35,7 @@ class Linea:
     palabras_clave: list[str] = field(default_factory=list)
     palabras_excluir: list[str] = field(default_factory=list)
     consultas: list[str] = field(default_factory=list)
+    hashtags: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -59,6 +60,10 @@ class Perfil:
     @property
     def ia(self) -> dict[str, Any]:
         return self.datos.get("ia", {})
+
+    @property
+    def imagenes(self) -> dict[str, Any]:
+        return self.datos.get("imagenes", {})
 
     @property
     def gmail(self) -> dict[str, Any]:
@@ -94,6 +99,7 @@ def cargar_perfil(ruta: str | Path) -> Perfil:
             palabras_clave=list(l.get("palabras_clave", [])),
             palabras_excluir=list(l.get("palabras_excluir", [])),
             consultas=list(l.get("consultas", [])),
+            hashtags=list(l.get("hashtags", [])),
         )
     if not lineas:
         raise ValueError(f"El perfil {ruta} no define ninguna línea en 'lineas:'")

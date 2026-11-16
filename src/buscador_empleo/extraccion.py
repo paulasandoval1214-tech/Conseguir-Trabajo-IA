@@ -240,6 +240,34 @@ TLD_PAIS = {"ec": "ecuador", "pe": "peru", "mx": "mexico", "ve": "venezuela", "c
             "gt": "guatemala", "es": "espana", "hn": "honduras", "sv": "el salvador", "us": "", "co": "colombia"}
 
 
+RE_CONTEXTO_SOCIAL = re.compile(
+    r"^(?:seguido por|te recomendamos|sugerencias?|promocionado|"
+    r".{0,80}?\b(?:recomienda esto|le gusta esto|les gusta esto|ha comentado|han comentado|"
+    r"ha compartido esto|han compartido esto|celebra esto|apoya esto|le encanta esto|"
+    r"ha reaccionado|le interesa esto|ha publicado esto))\s*",
+    re.IGNORECASE,
+)
+RE_FIN_AUTOR = re.compile(
+    r"\s(?:•|\d+\s*(?:h|d|sem|min|días?|mes(?:es)?)\b|\d[\d.]*\s+seguidores|seguir\b|conectar\b|siguiendo\b)",
+    re.IGNORECASE,
+)
+
+
+def limpiar_autor(autor: str) -> str:
+    """Deja solo el nombre de quien publicó.
+
+    El extractor viejo tomaba el inicio del post como autor ("Empresa Ejemplo 6 días Seguir ¡En...").
+    El nuevo toma el texto del enlace al perfil, pero el feed puede anteponer contexto
+    social ("Seguido por X", "A X le gusta esto").
+    """
+    a = limpiar(autor)
+    a = RE_CONTEXTO_SOCIAL.sub("", a, count=1) if len(a) > 25 else a
+    m = RE_FIN_AUTOR.search(a)
+    if m and m.start() >= 3:
+        a = a[: m.start()]
+    return a.strip(" .,-|")
+
+
 def empresa_desde_correo(correo: str) -> str:
     """seleccion@empresa-ejemplo.co -> "Empresa Ejemplo" (si el dominio no es un correo público)."""
     dominio = correo.split("@")[-1].lower()
@@ -256,7 +284,7 @@ def pais_desde_correo(correo: str) -> str:
 def correos_del_post(post: PostCrudo, ignorar: list[str] | None = None) -> list[str]:
     ignorar = [i.lower() for i in (ignorar or [])]
     correos = set(c.strip(".").lower() for c in post.correos)
-    correos.update(c.strip(".").lower() for c in RE_CORREO.findall(post.texto))
+    correos.update(c.strip(".").lower() for c in RE_CORREO.findall(post.texto_completo))
     salida = []
     for c in sorted(correos):
         if any(c.startswith(i) or c.endswith(i) for i in ignorar):
@@ -266,9 +294,15 @@ def correos_del_post(post: PostCrudo, ignorar: list[str] | None = None) -> list[
 
 
 def post_a_vacantes(post: PostCrudo, ignorar_correos: list[str] | None = None) -> list[Vacante]:
-    """Un post puede traer varios correos; se crea una vacante por correo."""
+    """Un post puede traer varios correos; se crea una vacante por correo.
+
+    Si el post trae texto leído de su afiche (`texto_imagen`), se usa junto con el texto:
+    muchas veces el cargo, la ciudad o el correo solo están en la imagen.
+    """
     cabecera, cuerpo = separar_cabecera(post.texto)
     texto = cuerpo or post.texto
+    if post.texto_imagen:
+        texto = f"{texto}\n[Texto de la imagen] {post.texto_imagen}"
     agregador = re.search(r"ofertas ?de ?trabajo|ofertas ?laborales|red de referidos|empleos? colombia",
                           normalizar(post.autor + " " + cabecera[:80]))
     es_pagina_empresa = bool(cabecera) and "•" not in cabecera[:150] and not agregador
@@ -279,11 +313,12 @@ def post_a_vacantes(post: PostCrudo, ignorar_correos: list[str] | None = None) -
         ciudad=extraer_ciudad(texto),
         modalidad=extraer_modalidad(texto),
         salario=extraer_salario(texto),
-        asunto_exigido=extraer_asunto(post.texto),
+        asunto_exigido=extraer_asunto(post.texto_completo),
         anios_experiencia=extraer_anios(texto),
         ingles_exigido=extraer_ingles(texto),
         pais_detectado=detectar_pais(texto),
-        autor=limpiar(post.autor)[:120],
+        autor=limpiar_autor(post.autor)[:120],
+        autor_url=post.autor_url,
         hace=post.hace,
         url=post.url,
         fuente=post.fuente,

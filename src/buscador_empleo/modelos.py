@@ -16,6 +16,19 @@ class PostCrudo:
     hace: str = ""
     url: str = ""
     fuente: str = ""
+    autor_url: str = ""                      # perfil o página de quien publicó
+    hashtags: list[str] = field(default_factory=list)
+    imagenes: list[dict[str, str]] = field(default_factory=list)  # [{"src": url, "alt": texto}]
+    sin_correo: bool = False                 # el correo no está en el texto (quizá en el afiche)
+    texto_imagen: str = ""                   # lo que se leyó de las imágenes (OCR / IA)
+    lectura_imagen: str = ""                 # "ocr", "ia", "alt", "error: ..." (diagnóstico)
+
+    @property
+    def texto_completo(self) -> str:
+        """Texto del post + lo leído en sus imágenes (si hay)."""
+        if not self.texto_imagen:
+            return self.texto
+        return f"{self.texto}\n[Texto de la imagen] {self.texto_imagen}"
 
     @classmethod
     def desde_dict(cls, d: dict[str, Any]) -> "PostCrudo":
@@ -30,7 +43,16 @@ class PostCrudo:
             hace=str(d.get("hace") or ""),
             url=str(d.get("url") or ""),
             fuente=str(d.get("fuente") or ""),
+            autor_url=str(d.get("autor_url") or d.get("autorUrl") or ""),
+            hashtags=[str(h) for h in (d.get("hashtags") or [])],
+            imagenes=[i if isinstance(i, dict) else {"src": str(i), "alt": ""} for i in (d.get("imagenes") or [])],
+            sin_correo=bool(d.get("sin_correo") or d.get("sinCorreo")),
+            texto_imagen=limpio(d.get("texto_imagen")),
+            lectura_imagen=str(d.get("lectura_imagen") or ""),
         )
+
+    def a_dict(self) -> dict[str, Any]:
+        return asdict(self)
 
 
 @dataclass
@@ -52,6 +74,7 @@ class Vacante:
     motivo_descarte: str = ""
     notas: str = ""
     autor: str = ""
+    autor_url: str = ""
     hace: str = ""
     url: str = ""
     fuente: str = ""
