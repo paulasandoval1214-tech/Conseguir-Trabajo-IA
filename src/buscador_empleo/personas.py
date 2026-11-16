@@ -47,7 +47,7 @@ RE_FUENTE = re.compile(r"linkedin\s*\(([^)]+)\)", re.IGNORECASE)
 RE_AGREGADOR = re.compile(r"ofertas? ?de ?trabajo|empleos?|vacantes|trabajo ?si ?hay|bolsa|jobs|talent(o)? ?hub",
                           re.IGNORECASE)
 RE_EMPRESA = re.compile(
-    r"\b(s\.?a\.?s?|ltda|group|grupo|colombia|banco|compa[ñn][ií]as?|talent|security|world|consulting|"
+    r"\b(empresas?|s\.?a\.?s?|ltda|group|grupo|colombia|banco|compa[ñn][ií]as?|talent|security|world|consulting|"
     r"hoteles?|cine|universidad|fundaci[oó]n|corporaci[oó]n|cl[ií]nica|laboratorios?|seguros|bpo|"
     r"outsourcing|soluciones|servicios|digital|est|temporales?|inc|corp|s\.a)\b",
     re.IGNORECASE)
