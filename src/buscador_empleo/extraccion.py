@@ -20,9 +20,9 @@ RE_EMOJI = re.compile(
 PAISES = {
     "colombia": ["colombia", "bogota", "medellin", "cali", "barranquilla", "cartagena",
                  "bucaramanga", "chia", "cundinamarca", "antioquia", "pereira", "yumbo"],
-    "ecuador": ["ecuador", "quito", "guayaquil", "samborondon", "cuenca"],
+    "ecuador": ["ecuador", "quito", "guayaquil", "samborondon", "cuenca", "senescyt"],
     "peru": ["peru", "lima"],
-    "mexico": ["mexico", "cdmx", "monterrey", "guadalajara", "aguascalientes"],
+    "mexico": ["mexico", "cdmx", "monterrey", "guadalajara", "aguascalientes", "infonavit", "imss"],
     "venezuela": ["venezuela", "caracas"],
     "chile": ["chile", "santiago de chile"],
     "argentina": ["argentina", "buenos aires"],
@@ -33,13 +33,15 @@ PAISES = {
     "nicaragua": ["nicaragua", "managua"],
     "honduras": ["honduras", "tegucigalpa", "san pedro sula"],
     "espana": ["espana", "madrid", "barcelona"],
+    "paraguay": ["paraguay", "asuncion"],
+    "brasil": ["brasil", "sao paulo", "rio de janeiro", "oportunidade", "vaga de emprego"],
 }
 
 CIUDADES = ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Bucaramanga",
             "Chía", "Pereira", "Yumbo", "Cajicá", "Zipaquirá", "Funza", "Mosquera", "Soacha",
             "Itagüí", "Envigado", "Rionegro", "Girardot", "Manizales", "Ibagué", "Villavicencio",
             "Valledupar", "Tunja", "Neiva", "Santa Marta", "Cúcuta", "Armenia", "Popayán", "Pasto",
-            "Montería", "Sincelejo", "Facatativá", "Tocancipá", "Soledad"]
+            "Montería", "Sincelejo", "Facatativá", "Tocancipá", "Soledad", "Galapa", "El Rosal"]
 
 PALABRAS_CARGO = (
     "analista|profesional|psic[oó]log[oa]|generalista|auxiliar|asistente|coordinador[a]?|"
@@ -237,7 +239,8 @@ def detectar_pais(texto: str) -> str:
 DOMINIOS_PUBLICOS = {"gmail", "hotmail", "outlook", "yahoo", "live", "icloud", "protonmail"}
 TLD_PAIS = {"ec": "ecuador", "pe": "peru", "mx": "mexico", "ve": "venezuela", "cl": "chile",
             "ar": "argentina", "do": "republica dominicana", "pa": "panama", "cr": "costa rica",
-            "gt": "guatemala", "es": "espana", "hn": "honduras", "sv": "el salvador", "us": "", "co": "colombia"}
+            "gt": "guatemala", "es": "espana", "hn": "honduras", "sv": "el salvador", "us": "", "co": "colombia",
+            "py": "paraguay", "br": "brasil", "uy": "uruguay", "bo": "bolivia"}
 
 
 RE_CONTEXTO_SOCIAL = re.compile(

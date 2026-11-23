@@ -134,18 +134,39 @@ ENVOLTURA = (
 )
 
 
+# Variante que AHORRA TOKENS: guarda todo en localStorage.cti_acc y devuelve solo un resumen
+# (correo + 140 caracteres). Al final, `localStorage.cti_acc` devuelve todo de una vez; si es
+# muy grande, el chat lo guarda en un archivo que `importar` lee directo (ver GUIA_CLAUDE.md).
+ENVOLTURA_ACUMULA = (
+    "(async () => {"
+    " const c = JSON.parse(localStorage.cti_cfg);"
+    " const extra = JSON.parse(localStorage.cti_extra || '{}');"
+    " window.__CTI_CONFIG = Object.assign({}, c, extra);"
+    " const r = JSON.parse(await eval(localStorage.cti_body));"
+    " r.forEach((x) => c.conocidos.push(...x.correos));"
+    " localStorage.cti_cfg = JSON.stringify(c);"
+    " const acc = JSON.parse(localStorage.cti_acc || '[]'); acc.push(...r);"
+    " localStorage.cti_acc = JSON.stringify(acc);"
+    " return JSON.stringify({n: r.length, acc: acc.length,"
+    " items: r.map((x) => x.correos.join(',') + ' | ' + x.texto.slice(0, 140))}); })()"
+)
+
+
 def version_extractor() -> str:
     """Huella corta del extractor: si cambia, hay que volver a cargarlo en el navegador."""
     import hashlib
 
-    return hashlib.sha1(RUTA_JS.read_bytes()).hexdigest()[:8]
+    # Incluye las envolturas: si cambian, también hay que recargar.
+    h = hashlib.sha1(RUTA_JS.read_bytes() + ENVOLTURA.encode() + ENVOLTURA_ACUMULA.encode())
+    return h.hexdigest()[:8]
 
 
 def script_cargador(perfil: Perfil, conocidos: set[str], incluir_imagenes: bool = False) -> str:
     """JS que deja el extractor GUARDADO en el navegador (localStorage de linkedin.com).
 
     Se pega una sola vez (y otra vez solo si cambia la versión). Después, en cada página,
-    basta con ejecutar exactamente:  await eval(localStorage.cti_run)
+    basta con ejecutar exactamente:  await eval(localStorage.cti_run_acum)
+    (o `cti_run` si se quiere ver todo el JSON en cada consulta).
     - Devuelve el mismo JSON que el extractor.
     - Agrega a `conocidos` los correos devueltos: la siguiente consulta no los repite.
     - Para el feed, antes: localStorage.cti_extra = '{"scrolls":25}'  (y '{}' para volver).
@@ -158,6 +179,8 @@ def script_cargador(perfil: Perfil, conocidos: set[str], incluir_imagenes: bool 
         f"localStorage.cti_cfg = {json.dumps(json.dumps(cfg, ensure_ascii=False), ensure_ascii=False)};\n"
         f"localStorage.cti_body = {json.dumps(cuerpo, ensure_ascii=False)};\n"
         f"localStorage.cti_run = {json.dumps(ENVOLTURA)};\n"
+        f"localStorage.cti_run_acum = {json.dumps(ENVOLTURA_ACUMULA)};\n"
+        "localStorage.cti_acc = '[]';\n"
         f"localStorage.cti_extra = '{{}}';\n"
         f"localStorage.cti_version = {json.dumps(version_extractor())};\n"
         "'extractor guardado: version ' + localStorage.cti_version + ', conocidos: ' + "

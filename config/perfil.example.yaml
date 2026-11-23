@@ -55,6 +55,18 @@ lineas:
       - "generalista recursos humanos Bogotá hoja de vida"
     hashtags: ["#talentohumano", "#gestionhumana", "#recursoshumanos", "#seleccion"]
 
+  # Ejemplo de una tercera línea (descoméntala y pon tu CV):
+  # riesgo_operacional:
+  #   nombre: "Riesgo operacional / procesos"
+  #   cv: "cvs/CV_Riesgo.pdf"
+  #   plantilla: "plantillas/correo_riesgo_operacional.txt"
+  #   experiencia_correo: "gestión de riesgo operacional, mapeo y mejora de procesos e indicadores de riesgo (KRIs)"
+  #   palabras_clave: [riesgo operacional, saro, siar, gestion de riesgos, analista de riesgo,
+  #                    control interno, analista de procesos, mejora de procesos, continuidad del negocio]
+  #   palabras_excluir: [contador, tesoreria, desarrollador, gerente, director, senior, sr, riesgo de mercado]
+  #   consultas: ["riesgos hoja de vida", "analista de procesos hoja de vida", "SARO vacante Bogotá"]
+  #   hashtags: ["#riesgooperacional", "#gestionderiesgos"]
+
 busqueda:
   periodo_linkedin: "past-week"           # past-24h | past-week | past-month (semana = vacantes vigentes)
   orden_linkedin: "relevancia"            # relevancia trae más resultados que "fecha" (15-nov-2026)

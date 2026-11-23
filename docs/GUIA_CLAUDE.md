@@ -22,6 +22,8 @@ export PYTHONPATH=src
 - **Personas para conectar**: si existe `claude/personas_para_conectar.csv` en el proyecto,
   guárdalo como `datos/personas_para_conectar.csv`. Así se conservan los estados que la
   persona marcó (Seguido / Conectado / Descartar). Al final de la sesión súbelo de nuevo.
+- **CV**: si una hoja de vida está solo en el computador de la persona (p. ej. una línea
+  nueva), pide acceso a esa carpeta con el puente del dispositivo y cópiala a `cvs/`.
 - **CV**: si hay que adjuntar desde el chat, los PDF deben estar en el entorno (descárgalos
   del correo de la persona con el conector de Gmail si ya los envió antes).
 - Revisa en Gmail los enviados recientes si hay dudas de duplicados.
@@ -63,20 +65,30 @@ Para cada URL de la lista:
 1. `navigate` a la URL. La persona debe tener sesión de LinkedIn en el navegador integrado.
    Si la página pide login, pídele que inicie sesión; no escribas contraseñas.
 2. Ejecuta, **solo esta línea** (LinkedIn bloquea `eval` si va con más instrucciones):
-   `await eval(localStorage.cti_run)`
-3. Guarda el resultado tal cual en `datos/crudo/DD_NN.json`, aunque venga vacío o con
-   posts que parezcan no servir. `importar` decide.
+   `await eval(localStorage.cti_run_acum)`
+   Devuelve un resumen corto (correo + 140 caracteres por post) y guarda el JSON completo en
+   `localStorage.cti_acc`. Así cada post viaja una sola vez por la conversación.
+3. Al terminar todas las consultas, ejecuta `localStorage.cti_acc`. Si es grande, el chat lo
+   guarda solo en un archivo (`/tmp/claude-tool-results/...txt`, formato
+   `[{"type":"text","text":...}]`). **Pásale ese archivo tal cual a `importar`**: lo
+   reconoce. Cópialo antes a `datos/crudo/DD_NN.json` para no perderlo. Luego vacía el
+   acumulado con `localStorage.cti_acc = '[]'`.
+   - Si es pequeño y se ve en la conversación, guárdalo tal cual en `datos/crudo/`.
+   - No intentes descargarlo como archivo: el navegador integrado no guarda descargas en
+     la carpeta de Descargas (probado el 22-nov).
 
 En el **feed**, antes del paso 2 ejecuta `localStorage.cti_extra = '{"scrolls":25}'`, y al
 terminar vuelve a `'{}'`.
 
 **Si LinkedIn limita** (dos o tres páginas con "No se han encontrado resultados" seguidas):
-para por hoy. No insistas: arriesga la cuenta. Sigue con lo que ya hay.
+para por hoy. No insistas: arriesga la cuenta. Sigue con lo que ya hay. Ojo: una sola página
+vacía con una consulta larga es normal; prueba una más corta antes de concluir que es el
+límite.
 
 Para ahorrar tokens:
-- 4–6 consultas por sesión suelen bastar.
+- 8–16 consultas por sesión, si hace varios días que no se busca. Consultas cortas.
 - No leas la página con `get_page_text` ni capturas: el extractor ya trae lo necesario.
-- Si una respuesta es muy grande, baja `busqueda.max_texto` (p. ej. 600).
+- Si una respuesta es muy grande, baja `maxTexto` con `localStorage.cti_extra`.
 - Afiches: el chat no puede leerlos con OCR. Si la persona quiere aprovecharlos, carga el
   extractor con `js --cargador --imagenes` y deja los crudos para que en el PC corran
   `scripts\leer_afiches.bat`.

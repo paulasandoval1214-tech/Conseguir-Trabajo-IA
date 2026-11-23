@@ -16,7 +16,7 @@ RE_CERRADA = re.compile(
 )
 RE_BUSCA_EMPLEO = re.compile(
     r"(estoy|me encuentro) en (la )?busqueda de (nuevas )?oportunidades|#opentowork|busco empleo|"
-    r"disponibilidad inmediata para"
+    r"disponibilidad inmediata para|quiero recomendar a|hoy quiero recomendar|el talento merece ser visibilizado"
 )
 
 

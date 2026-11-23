@@ -42,13 +42,29 @@ def _ruta_historial(perfil: Perfil, arg: str | None) -> Path:
     return Path(arg) if arg else perfil.carpeta_datos / "historial.md"
 
 
+def _desenvolver(datos):
+    """Saca la lista de posts de lo que haya guardado el asistente.
+
+    Acepta: la lista directa; la lista como texto (el navegador devuelve un string); y el
+    archivo que guarda el chat cuando una respuesta es muy grande:
+    [{"type": "text", "text": "\"[...]\"\n\n(captured at origin ...)"}].
+    Así `localStorage.cti_acc` llega a `importar` sin copiarlo a mano (ahorra tokens).
+    """
+    if isinstance(datos, list) and datos and isinstance(datos[0], dict) and set(datos[0]) >= {"type", "text"} \
+            and "correos" not in datos[0]:
+        texto = "".join(d.get("text", "") for d in datos if d.get("type") == "text")
+        texto = texto.split("\n\n(captured at origin")[0].strip()
+        datos = json.loads(texto)
+    while isinstance(datos, str):  # el navegador a veces devuelve el JSON como string
+        datos = json.loads(datos)
+    return datos
+
+
 def _leer_crudos(archivos: list[str]) -> list[PostCrudo]:
     posts = []
     for a in archivos:
         contenido = Path(a).read_text(encoding="utf-8").strip()
-        datos = json.loads(contenido)
-        if isinstance(datos, str):  # el navegador a veces devuelve el JSON como string
-            datos = json.loads(datos)
+        datos = _desenvolver(json.loads(contenido))
         posts += [PostCrudo.desde_dict(d) for d in datos]
     return posts
 

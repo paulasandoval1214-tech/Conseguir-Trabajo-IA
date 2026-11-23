@@ -17,7 +17,10 @@ otra persona que descargue el repo arranque con todo este camino ya recorrido.
 | 13-nov | Respuestas | — | — | — | 1 rechazo (cargo afín de relaciones laborales), 1 rebote (correo mal escrito en el post), 1 acuse de recibo. |
 | 15/16-nov | Extractor + `importar`, ~16 búsquedas (relevancia, última semana) | 56 con correo nuevo | 9 (8 tras revisión) | 8 | LinkedIn empezó a limitar ("No se han encontrado resultados"). |
 
-Estado al 16-nov: 27 enviadas, 8 borradores listos, 1 rechazada, 1 rebotada.
+| 22-nov | Extractor guardado en el navegador (modo acumulado), feed + 15 búsquedas | 152 con correo nuevo | 23 (15 tras revisión) | 15 | Una semana sin buscar. Nueva línea de riesgo operacional. Sin límite de LinkedIn. |
+
+Estado al 22-nov: 33 enviadas, 15 borradores listos, **2 en proceso (entrevistas)**, 1
+rechazada, 2 rebotadas.
 
 ---
 
@@ -150,6 +153,41 @@ de conectar la hacen ellos, a mano.
 - `noche` ahora también lee afiches y regenera los rankings.
 - `correos_descartados` en el perfil, estado "Rebotado", `.gitattributes` para CRLF en
   scripts de Windows e `instalar.ps1` que instala OCR y navegador.
+
+## 2026-11-22 — Primeras entrevistas, tercera línea y extracción más barata
+
+**Respuestas de la semana:**
+- **Entrevista**: la empresa de un cargo de coordinación de talento al que se escribió el
+  12-nov invitó por Teams. Fue el primer "sí" por correo directo, 10 días después.
+- **En proceso**: una postulación hecha por un portal de empleo (no por este método) llamó
+  a entrevista. Hay que registrar también lo que se envía por otros canales.
+- **Rebote técnico**: el servidor de correo de una cadena hotelera no aceptó conexiones
+  durante 3 días. No era la dirección: eso también cuenta como "Rebotado".
+
+**Nueva línea:** riesgo operacional / procesos (fintech), con su propia hoja de vida y
+plantilla `plantillas/correo_riesgo_operacional.txt`. Búsquedas que sirvieron: "riesgos hoja
+de vida" y "analista de procesos hoja de vida". Las que tenían "riesgo operacional"
+trajeron casi solo vacantes de otros países.
+
+**Extracción más barata:** antes cada post viajaba dos veces por la conversación: al
+extraerlo y al copiarlo a `datos/crudo/`. Ahora:
+- `cti_run_acum` guarda todo en `localStorage.cti_acc` y solo devuelve un resumen.
+- Al final, `localStorage.cti_acc` es tan grande que el chat lo guarda solo en un archivo.
+- `importar` lee ese archivo tal cual (`_desenvolver` en `cli.py`).
+
+Se probó descargarlo como archivo desde el navegador integrado y no funciona: las descargas
+no llegan a la carpeta de Descargas.
+
+**Filtros** (según los descartes reales del día):
+- Países: Ecuador (SENESCYT), México (INFONAVIT, IMSS), Paraguay (.py), Brasil (.br,
+  "vaga", "oportunidade"), Uruguay (.uy) y Bolivia (.bo).
+- Ciudades: Galapa y El Rosal.
+- Se descartan como "persona buscando empleo" los posts que recomiendan a un candidato
+  ("quiero recomendar a…").
+- Palabras de exclusión por línea: practicante/aprendiz; engineer/LLM en datos.
+- Palabras de la línea de riesgo: "analista de riesgo", "control de operaciones",
+  "procesos de mejora".
+- Datos: "workforce" y "WFM".
 
 ---
 
