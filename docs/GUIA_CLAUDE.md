@@ -87,6 +87,12 @@ límite.
 
 Para ahorrar tokens:
 - 8–16 consultas por sesión, si hace varios días que no se busca. Consultas cortas.
+- Si la semana ya está agotada (las consultas devuelven 0–2 posts nuevos y la página sí
+  muestra resultados), repite las que más rinden con `datePosted=%22past-month%22`.
+- En el panel oculto, el feed con 25 scrolls puede pasar de 45 s y la herramienta corta la
+  llamada; el script termina igual y guarda en `cti_acc`. Espera y revisa
+  `JSON.parse(localStorage.cti_acc).length` antes de repetir. En búsquedas usa
+  `localStorage.cti_extra = '{"scrolls":10}'`.
 - No leas la página con `get_page_text` ni capturas: el extractor ya trae lo necesario.
 - Si una respuesta es muy grande, baja `maxTexto` con `localStorage.cti_extra`.
 - Afiches: el chat no puede leerlos con OCR. Si la persona quiere aprovecharlos, carga el

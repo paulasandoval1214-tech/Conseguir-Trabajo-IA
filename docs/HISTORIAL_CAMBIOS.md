@@ -19,7 +19,9 @@ otra persona que descargue el repo arranque con todo este camino ya recorrido.
 
 | 22-nov | Extractor guardado en el navegador (modo acumulado), feed + 15 búsquedas | 152 con correo nuevo | 23 (15 tras revisión) | 15 | Una semana sin buscar. Nueva línea de riesgo operacional. Sin límite de LinkedIn. |
 
-Estado al 22-nov: 33 enviadas, 15 borradores listos, **2 en proceso (entrevistas)**, 1
+| 23-nov | Mismo método, 10 búsquedas de la semana + 5 del **último mes** | 79 con correo nuevo | 24 (10 tras revisión) | 10 | La semana ya estaba agotada; el último mes trajo vacantes de 2–4 semanas aún abiertas. |
+
+Estado al 23-nov: 48 enviadas, 10 borradores listos, **2 en proceso (entrevistas)**, 1
 rechazada, 2 rebotadas.
 
 ---
@@ -188,6 +190,22 @@ no llegan a la carpeta de Descargas.
 - Palabras de la línea de riesgo: "analista de riesgo", "control de operaciones",
   "procesos de mejora".
 - Datos: "workforce" y "WFM".
+
+## 2026-11-23 — Segunda ronda al día siguiente
+
+- Las búsquedas de la **última semana** dieron 0–4 posts nuevos cada una: el día anterior
+  ya se había visto casi todo. No era el límite de LinkedIn (la página sí mostraba
+  resultados), sino que los correos ya estaban en `conocidos`.
+- Cambiar a **último mes** (`datePosted="past-month"`) en las consultas que más rinden
+  trajo 9–17 posts nuevos por búsqueda, con vacantes de 2–4 semanas que siguen abiertas.
+  Regla: cuando la semana se agote, repetir las mejores consultas con el último mes.
+- El feed con 25 *scrolls* tarda más de 45 s con el panel del navegador oculto y la
+  herramienta corta la llamada, aunque el script termina y guarda en `cti_acc`. Para
+  búsquedas, 10 *scrolls* bastan.
+- **Cargo desde un título con barras** ("📊 Business Intelligence Analyst | Bogotá |
+  Híbrido"): antes se tomaba "Profesionales apasionados por los dat…" y la vacante salía
+  como "no coincide". Ahora se lee primero ese título (`extraer_cargo`), quitando los
+  botones de LinkedIn que quedan pegados ("Conectar", "Seguir").
 
 ---
 

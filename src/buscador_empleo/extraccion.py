@@ -102,6 +102,15 @@ def separar_cabecera(texto: str) -> tuple[str, str]:
 
 def extraer_cargo(texto: str) -> str:
     t = limpiar(texto).replace("#", "")
+    # Título tipo encabezado: "📊 Business Intelligence Analyst | Bogotá | Híbrido". Va primero:
+    # cuando existe es el cargo exacto (el resto del texto suele decir "buscamos profesionales...").
+    m = re.search(r"(?:^|[^\w|])([A-ZÁÉÍÓÚÑ][\wÁÉÍÓÚáéíóúñ/&().,\- ]{3,70}?)\s*\|\s*"
+                  r"(?:Bogot|Medell|Cali\b|Barranquilla|Remot|Colombia|H[ií]brid|Presencial)", t)
+    if m:
+        # Quita los botones de LinkedIn que quedan pegados al quitar emojis ("Conectar 📊 Título").
+        cargo = _limpiar_cargo(re.sub(r"^(?:(?:Conectar|Seguir|Siguiendo|Unirse|Editado)\s+)+", "", m.group(1)))
+        if len(cargo) >= 6 and re.search(rf"(?i)\b(?:{PALABRAS_CARGO}|analyst|manager|specialist|engineer)\b", cargo):
+            return cargo[0].upper() + cargo[1:]
     patrones = [
         rf"(?:vacante|cargo|posici[oó]n|rol)\s*[:\-–]?\s*((?:{PALABRAS_CARGO})[^.!\n]{{2,80}})",
         rf"(?:buscando|buscamos|b[uú]squeda de|contratando|necesitamos|requiere)\s+"

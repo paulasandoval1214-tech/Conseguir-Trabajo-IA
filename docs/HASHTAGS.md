@@ -108,48 +108,48 @@ Esta tabla la escribe `hashtags --actualizar-doc`; no la edites a mano. Solo tra
 conteos, no correos ni nombres.
 
 <!-- ranking:inicio -->
-_Actualizado 2026-11-22 con 440 posts extraídos._
+_Actualizado 2026-11-23 con 575 posts extraídos._
 
 | Hashtag | Posts vistos | Con correo | Útiles | datos | gestion_humana | riesgo_operacional | Tasa útil |
 |---|---|---|---|---|---|---|---|
-| #powerbi | 19 | 19 | 11 | 9 | 0 | 2 | 57 % |
-| #ofertalaboral | 30 | 30 | 11 | 4 | 7 | 0 | 37 % |
-| #bogotá | 34 | 34 | 11 | 3 | 8 | 0 | 32 % |
-| #talentohumano | 46 | 46 | 11 | 3 | 8 | 0 | 24 % |
-| #empleo | 33 | 33 | 8 | 3 | 5 | 0 | 24 % |
-| #recursoshumanos | 15 | 15 | 7 | 0 | 7 | 0 | 47 % |
-| #oportunidadlaboral | 37 | 37 | 7 | 5 | 2 | 0 | 19 % |
-| #estamoscontratando | 29 | 29 | 6 | 3 | 3 | 0 | 21 % |
-| #businessintelligence | 8 | 8 | 5 | 5 | 0 | 0 | 62 % |
-| #empleobogotá | 22 | 22 | 5 | 2 | 1 | 2 | 23 % |
-| #dataanalytics | 6 | 6 | 4 | 4 | 0 | 0 | 67 % |
-| #selección | 6 | 6 | 4 | 0 | 4 | 0 | 67 % |
-| #analíticadedatos | 3 | 3 | 3 | 3 | 0 | 0 | 100 % |
+| #ofertalaboral | 45 | 45 | 18 | 7 | 11 | 0 | 40 % |
+| #talentohumano | 63 | 63 | 18 | 4 | 14 | 0 | 28 % |
+| #powerbi | 31 | 31 | 17 | 14 | 0 | 3 | 55 % |
+| #bogotá | 50 | 50 | 16 | 5 | 10 | 1 | 32 % |
+| #empleobogotá | 45 | 45 | 14 | 4 | 7 | 3 | 31 % |
+| #empleo | 48 | 47 | 12 | 5 | 6 | 1 | 25 % |
+| #oportunidadlaboral | 49 | 49 | 11 | 5 | 6 | 0 | 22 % |
+| #businessintelligence | 14 | 14 | 10 | 10 | 0 | 0 | 71 % |
+| #estamoscontratando | 35 | 35 | 9 | 3 | 6 | 0 | 26 % |
+| #dataanalytics | 12 | 12 | 8 | 8 | 0 | 0 | 67 % |
+| #sql | 12 | 12 | 8 | 8 | 0 | 0 | 67 % |
+| #recursoshumanos | 19 | 19 | 7 | 0 | 7 | 0 | 37 % |
+| #python | 7 | 7 | 6 | 6 | 0 | 0 | 86 % |
+| #analíticadedatos | 5 | 5 | 5 | 5 | 0 | 0 | 100 % |
+| #excelavanzado | 5 | 5 | 4 | 3 | 1 | 0 | 80 % |
+| #selección | 8 | 7 | 4 | 0 | 4 | 0 | 50 % |
+| #analistadedatos | 9 | 9 | 4 | 4 | 0 | 0 | 44 % |
+| #medellín | 11 | 11 | 4 | 1 | 2 | 1 | 36 % |
+| #vacantesbogota | 13 | 13 | 4 | 0 | 4 | 0 | 31 % |
+| #gestiónhumana | 14 | 14 | 4 | 0 | 4 | 0 | 28 % |
+| #empleocolombia | 19 | 19 | 4 | 1 | 2 | 1 | 21 % |
 | #automatización | 3 | 3 | 3 | 1 | 2 | 0 | 100 % |
-| #python | 3 | 3 | 3 | 3 | 0 | 0 | 100 % |
-| #analistadedatos | 4 | 4 | 3 | 3 | 0 | 0 | 75 % |
-| #excelavanzado | 4 | 4 | 3 | 3 | 0 | 0 | 75 % |
-| #medellín | 9 | 9 | 3 | 1 | 2 | 0 | 33 % |
-| #vacante | 17 | 17 | 3 | 2 | 1 | 0 | 18 % |
+| #datascience | 3 | 3 | 3 | 3 | 0 | 0 | 100 % |
+| #hiringnow | 4 | 4 | 3 | 1 | 1 | 1 | 75 % |
+| #oportunidadeslaborales | 9 | 9 | 3 | 0 | 3 | 0 | 33 % |
+| #vacante | 22 | 22 | 3 | 2 | 1 | 0 | 14 % |
+| #trabajosihay | 24 | 24 | 3 | 0 | 2 | 1 | 12 % |
 | #aiengineer | 2 | 2 | 2 | 2 | 0 | 0 | 100 % |
+| #analistadebienestar | 2 | 2 | 2 | 0 | 2 | 0 | 100 % |
+| #análisisfinanciero | 2 | 2 | 2 | 2 | 0 | 0 | 100 % |
 | #atracción | 2 | 2 | 2 | 0 | 2 | 0 | 100 % |
 | #auxiliardetalentohumano | 2 | 2 | 2 | 0 | 2 | 0 | 100 % |
-| #datascience | 2 | 2 | 2 | 2 | 0 | 0 | 100 % |
+| #dataanalyst | 2 | 2 | 2 | 2 | 0 | 0 | 100 % |
+| #datalake | 2 | 2 | 2 | 2 | 0 | 0 | 100 % |
 | #dentisalud | 2 | 2 | 2 | 2 | 0 | 0 | 100 % |
 | #generativeai | 2 | 2 | 2 | 2 | 0 | 0 | 100 % |
+| #gobiernodedatos | 2 | 2 | 2 | 1 | 0 | 1 | 100 % |
 | #growthmarketing | 2 | 2 | 2 | 2 | 0 | 0 | 100 % |
 | #hagamosequipo | 2 | 2 | 2 | 2 | 0 | 0 | 100 % |
 | #iagenerativa | 2 | 2 | 2 | 2 | 0 | 0 | 100 % |
-| #lappiz | 2 | 2 | 2 | 2 | 0 | 0 | 100 % |
-| #operativos | 2 | 2 | 2 | 0 | 2 | 0 | 100 % |
-| #powerautomate | 2 | 2 | 2 | 0 | 2 | 0 | 100 % |
-| #procesos | 2 | 2 | 2 | 0 | 0 | 2 | 100 % |
-| #rag | 2 | 2 | 2 | 2 | 0 | 0 | 100 % |
-| #reclutando | 2 | 2 | 2 | 0 | 2 | 0 | 100 % |
-| #rpa | 2 | 2 | 2 | 0 | 2 | 0 | 100 % |
-| #teknei | 2 | 2 | 2 | 2 | 0 | 0 | 100 % |
-| #vacanteactiva | 2 | 2 | 2 | 0 | 0 | 2 | 100 % |
-| #alimentos | 3 | 3 | 2 | 0 | 2 | 0 | 67 % |
-| #hiringnow | 3 | 3 | 2 | 0 | 1 | 1 | 67 % |
-| #sql | 3 | 3 | 2 | 2 | 0 | 0 | 67 % |
 <!-- ranking:fin -->

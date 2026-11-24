@@ -123,3 +123,9 @@ def test_correos_descartados_a_mano(posts, perfil):
     res = filtros.aplicar(vs, perfil, set())
     assert all(v.motivo_descarte.startswith("descartada a mano") for v in res
                if v.correo.endswith(objetivo.split("@")[1]))
+
+
+def test_cargo_desde_titulo_con_barras():
+    texto = ("Laura Ejemplo • 2º Consultora 8 h • Conectar 📊 Business Intelligence Analyst | Bogotá | Híbrido "
+             "En Ejemplo buscamos profesionales apasionados por los datos. Envía tu hoja de vida a bi@empresa-ejemplo.com")
+    assert extraer_cargo(texto) == "Business Intelligence Analyst"
